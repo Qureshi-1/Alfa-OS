@@ -109,6 +109,10 @@ Plugins
 
 Extend functionality.
 
+Workers
+
+Execute background tasks.
+
 Desktop
 
 Presentation only.

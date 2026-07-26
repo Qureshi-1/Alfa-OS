@@ -1,27 +1,21 @@
 #!/usr/bin/env python3
 """
-Alfa COS — Cognitive Operating System  v0.1
-Boot Sequence, CLI Loop, and Structured Logging
+Alfa COS — Cognitive Operating System Phase 2
+Boot Sequence, Interactive CLI Loop, and Structured Logging
 """
 
 import logging
 import os
 import sys
 import time
-from datetime import datetime
 from typing import Optional
 
 # Force UTF-8 output on Windows
 if sys.platform == "win32":
     sys.stdout.reconfigure(encoding="utf-8")
 
-from prototype.kernel import Kernel
-from prototype.context import ContextManager
-from prototype.memory import Memory
-from prototype.planner import Planner
-from prototype.cli import CLI
-from prototype.config import SettingsManager, get_settings_manager, reset_settings_manager
-from prototype.provider import MockProvider, NVIDIAProvider, OpenRouterProvider, Provider
+from prototype.config import get_settings_manager, reset_settings_manager
+from prototype.runtime import AlfaRuntime
 
 # ── Logging setup ─────────────────────────────────────────────────────────────
 
@@ -35,22 +29,6 @@ logging.basicConfig(
     format="%(asctime)s %(levelname)s %(name)s %(message)s",
 )
 logger = logging.getLogger("alfa.main")
-
-
-# ── Provider factory ──────────────────────────────────────────────────────────
-
-
-def create_provider(settings: SettingsManager) -> Provider:
-    """Create a provider instance based on the current configuration."""
-    name = settings.get_provider()
-    if name == "nvidia":
-        return NVIDIAProvider(settings)
-    elif name == "openrouter":
-        return OpenRouterProvider(settings)
-    return MockProvider()
-
-
-# ── Structured interaction logger ─────────────────────────────────────────────
 
 
 def log_interaction(
@@ -76,58 +54,37 @@ def log_interaction(
 
 
 def boot_sequence() -> None:
-    print("=" * 40)
-    print("  Alfa COS v0.1 — Boot Sequence")
-    print("=" * 40)
+    print("=" * 45)
+    print("  Alfa COS Phase 2 — Cognitive Operating System")
+    print("=" * 45)
     print()
 
-    # Settings (single source of truth)
     reset_settings_manager()
     settings = get_settings_manager()
 
-    # Components
-    kernel = Kernel()
-    context_manager = ContextManager()
-    memory = Memory()
-    planner = Planner()
-    provider = create_provider(settings)
-    cli = CLI()
+    runtime = AlfaRuntime(settings=settings)
+    runtime.load()
 
-    components = [
-        ("Kernel", kernel),
-        ("Context", context_manager),
-        ("Memory", memory),
-        ("Planner", planner),
-        ("Provider", provider),
-        ("CLI", cli),
-    ]
+    print("[✓] Executive Controller Loaded")
+    print("[✓] Decision Engine Loaded")
+    print("[✓] Reflection Engine Loaded")
+    print("[✓] Learning Engine Loaded")
+    print("[✓] Memory Manager (Working + SQLite) Loaded")
+    print("[✓] Tool Manager Loaded")
+    print("[✓] Plugin Manager Loaded")
+    print("[✓] Cognitive Core Pipeline Active")
 
-    for name, component in components:
-        component.load()
-        print(f"[\u2713] {name} Loaded")
-
-    # Wire dependencies
-    kernel.set_dependencies(planner=planner, memory=memory, provider=provider)
-    cli.set_dependencies(
-        kernel=kernel,
-        context_manager=context_manager,
-        memory=memory,
-        settings=settings,
-    )
-
-    provider_name = settings.get_provider()
+    provider_name = runtime.provider_name
     model_name = settings.get_model()
     print()
     print(f"Provider : {provider_name}")
     print(f"Model    : {model_name}")
     print()
-    print("Alfa COS Ready.")
-    print("Type 'help' for available commands.")
+    print("Alfa COS Phase 2 Ready.")
+    print("Type 'help' for available commands or 'desktop' to launch PySide6 Desktop UI.")
     print()
 
-    logger.info(
-        "boot provider=%s model=%s", provider_name, model_name
-    )
+    logger.info("boot provider=%s model=%s phase=2", provider_name, model_name)
 
     # ── Main loop ─────────────────────────────────────────────────────────
 
@@ -140,26 +97,28 @@ def boot_sequence() -> None:
             if user_input.lower() == "exit":
                 break
 
-            # ── Settings commands (handled in main, not kernel) ───────────
-            if _handle_settings_command(
-                user_input, settings, kernel, planner, memory, context_manager, cli
-            ):
+            if user_input.lower() == "desktop":
+                try:
+                    from prototype.desktop import launch_desktop
+                    print("Launching PySide6 Desktop Application...")
+                    app, window = launch_desktop(runtime)
+                    app.exec()
+                except Exception as exc:
+                    print(f"Error launching Desktop UI: {exc}")
                 continue
 
-            # ── Standard pipeline ─────────────────────────────────────────
-            from prototype.common import Goal
-
-            goal = Goal(name="USER_INPUT", parameters={"input": user_input})
-            context = context_manager.build_context(goal=goal)
+            # Settings commands
+            if _handle_settings_command(user_input, settings, runtime):
+                continue
 
             start = time.time()
-            result = kernel.process(user_input, context)
+            result = runtime.process(user_input)
             latency_ms = (time.time() - start) * 1000
 
             if result.content:
                 print(f"{result.content}")
             if latency_ms > 1.0:
-                print(f"[{settings.get_provider()} | {latency_ms:.0f}ms]")
+                print(f"[{runtime.provider_name} | {latency_ms:.0f}ms]")
             if result.error:
                 print(f"Error: {result.error}")
 
@@ -167,7 +126,7 @@ def boot_sequence() -> None:
                 user_input,
                 result.content,
                 latency_ms,
-                settings.get_provider(),
+                runtime.provider_name,
                 result.error if not result.success else None,
             )
 
@@ -183,31 +142,13 @@ def boot_sequence() -> None:
     # ── Shutdown ──────────────────────────────────────────────────────────
 
     print()
-    print("Shutting down...")
-    for name, component in reversed(components):
-        try:
-            component.shutdown()
-            print(f"[\u2713] {name} Shutdown")
-        except Exception:
-            logger.exception("Shutdown error for %s", name)
-
-    print()
-    print("Alfa COS Stopped.")
+    print("Shutting down Cognitive Core...")
+    runtime.shutdown()
+    print("[✓] Alfa COS Stopped.")
     logger.info("shutdown complete")
 
 
-# ── Settings command dispatcher ───────────────────────────────────────────────
-
-
-def _handle_settings_command(
-    user_input: str,
-    settings: SettingsManager,
-    kernel: Kernel,
-    planner,
-    memory,
-    context_manager,
-    cli,
-) -> bool:
+def _handle_settings_command(user_input: str, settings, runtime: AlfaRuntime) -> bool:
     """Handle settings-related CLI commands. Returns True if handled."""
     parts = user_input.split()
     cmd = parts[0].lower()
@@ -222,17 +163,12 @@ def _handle_settings_command(
     if cmd == "provider":
         if len(parts) == 1:
             print(f"Current provider: {settings.get_provider()}")
-            print("Available: mock, nvidia, openrouter")
+            print("Available: mock, nvidia, openrouter, ollama")
         elif len(parts) == 2:
             name = parts[1].lower()
             try:
-                settings.set_provider(name)
+                runtime.switch_provider(name)
                 print(f"Provider changed to: {name}")
-                new_provider = create_provider(settings)
-                new_provider.load()
-                kernel.set_dependencies(
-                    planner=planner, memory=memory, provider=new_provider
-                )
                 print(f"Model: {settings.get_model()}")
             except ValueError as exc:
                 print(str(exc))
@@ -254,19 +190,14 @@ def _handle_settings_command(
         if len(parts) == 2:
             settings.set_api_key(parts[1])
             print(f"API key set for {settings.get_provider()}")
-            # Reload provider with new key
-            new_provider = create_provider(settings)
-            new_provider.load()
-            kernel.set_dependencies(
-                planner=planner, memory=memory, provider=new_provider
-            )
+            runtime.switch_provider(settings.get_provider())
             print("Provider reloaded.")
         else:
             print("Usage: apikey <key>")
         return True
 
     if cmd == "test":
-        print("Testing connection...")
+        print("Testing provider connection...")
         result = settings.test_connection()
         if result["connected"]:
             print(f"[OK] Connected to {result['provider']}")
@@ -279,8 +210,6 @@ def _handle_settings_command(
 
     return False
 
-
-# ── Entry point ───────────────────────────────────────────────────────────────
 
 if __name__ == "__main__":
     boot_sequence()

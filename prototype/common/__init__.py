@@ -3,7 +3,7 @@
 from .types import (
     Goal,
     Context,
-    Memory,
+    MemoryState,
     Plan,
     Tool,
     Agent,
@@ -20,7 +20,7 @@ from .event_bus import Event, EventBus, get_event_bus
 __all__ = [
     "Goal",
     "Context",
-    "Memory",
+    "MemoryState",
     "Plan",
     "Tool",
     "Agent",

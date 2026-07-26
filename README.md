@@ -1,246 +1,221 @@
-# Alfa COS v0.1 — Cognitive Operating System
+# Alfa COS v0.3 — Artificial Cognitive Operating System
 
-A modular, conversational AI operating system with pluggable LLM providers, an internal settings system, structured logging, and an extensible memory engine.
+A modular, production-ready Artificial Cognitive Operating System with an Executive Controller, Decision Engine, Reflection Engine, Learning Engine, Persistent SQLite Memory Manager, Tool & Plugin Frameworks, Worker Framework, interchangeable LLM providers (Mock, NVIDIA, OpenRouter, Ollama), PySide6 Desktop Developer Client, and Flutter Android Client.
 
 ---
 
-## Architecture
+## Cognitive Architecture
 
 ```
-User Input
-    │
-    ▼
-  Kernel  ◄── GoalInterpreter (classifies commands vs. conversation)
-    │
-    ├──► Planner        (classifies action type)
-    ├──► Memory         (remember / recall / forget / list / clear)
-    ├──► Provider       (MockProvider │ NVIDIAProvider │ OpenRouterProvider)
-    │
-    ▼
-  Response
-    │
-    ▼
-  Logging   (structured, API-key-safe session.log)
+                                USER / CLIENTS
+                           (Desktop PySide6 | Android Flutter)
+                                        │
+                                        ▼
+                                  Input Layer
+                                        │
+                                 Context Builder
+                                        │
+                                Goal Interpreter
+                                        │
+                              Executive Controller
+                                        │
+                ┌───────────────────────┼───────────────────────┐
+                │                       │                       │
+          Attention              Working Memory             Event Bus
+                │                       │                       │
+                └───────────────────────┼───────────────────────┘
+                                        │
+                                 Decision Engine
+                                        │
+                                 Reasoning Engine
+                                        │
+                                 Planning Engine
+                                        │
+                               Tool Execution Manager
+                                        │
+                                 Worker Framework
+                                        │
+                                Reflection Engine
+                                        │
+                                 Learning Engine
+                                        │
+                       Memory Manager (SQLite + Working)
+                                        │
+                                Response Builder
+                                        │
+                                        ▼
+                                  Response Output
 ```
 
-All components are loaded, wired, and shut down through the **Kernel**. The CLI and HTTP server both use the same `AlfaRuntime` composition root.
+All components are compositionally wired and managed through the **AlfaRuntime** root.
 
-### Module Map
+---
+
+## Module Map
 
 | Module | Path | Purpose |
 |--------|------|---------|
-| **Kernel** | `prototype/kernel/` | Central orchestrator — routes input through the pipeline |
-| **GoalInterpreter** | `prototype/kernel/goal_interpreter.py` | Classifies user input into goals (REMEMBER, RECALL, EXIT, etc.) |
-| **Planner** | `prototype/planner/` | Classifies goals into action types (memory, conversation, control) |
-| **Memory** | `prototype/memory/` | Working + long-term episodic memory with keyword search |
-| **Provider** | `prototype/provider/` | Abstract `Provider` base + Mock, NVIDIA, OpenRouter implementations |
-| **Config** | `prototype/config/` | Single-source settings manager with JSON persistence |
-| **Context** | `prototype/context/` | Builds execution context for each request |
-| **CLI** | `prototype/cli/` | Interactive terminal interface |
-| **Runtime** | `prototype/runtime.py` | Composition root for CLI and HTTP API |
-| **Server** | `prototype/server.py` | FastAPI HTTP bridge for mobile/web clients |
-| **Common** | `prototype/common/` | Shared data types, event bus |
+| **Kernel** | `prototype/kernel/` | Execution coordinator — routes requests through the pipeline |
+| **Executive Controller** | `prototype/executive/` | Manages cognitive execution, task scheduling, retries, and recovery |
+| **Decision Engine** | `prototype/decision/` | Evaluates cognitive state and selects optimal next actions |
+| **Reflection Engine** | `prototype/reflection/` | Post-execution evaluation, quality scoring, and recommendation generation |
+| **Learning Engine** | `prototype/learning/` | Foundation storage for insights and lessons from reflections |
+| **Memory Manager** | `prototype/memory/` | Unified interface over working memory and SQLite persistent memory |
+| **Persistent Memory** | `prototype/memory/persistent_memory.py` | SQLite backend for long-term episodic/semantic memories |
+| **Planner** | `prototype/planner/` | Classifies goals and generates execution steps |
+| **Providers** | `prototype/provider/` | Abstract `Provider` interface + Mock, NVIDIA, OpenRouter, Ollama |
+| **Tool Framework** | `prototype/tools/` | Tool registry, built-in tools (calculator, datetime, system_info) |
+| **Plugin Framework** | `prototype/plugins/` | Dynamic plugin discovery, lifecycle, permissions, and tool extensions |
+| **Worker Framework** | `prototype/worker/` | Permanent background worker infrastructure with FIFO scheduler & validation worker |
+| **Config** | `prototype/config/` | Single source of truth settings manager with `config.json` persistence |
+| **Context** | `prototype/context/` | Builds execution context for each turn |
+| **Desktop Client** | `prototype/desktop/` | PySide6 Developer GUI (Chat, Memory, Inspector, Tasks, Logs, Settings, Providers, Plugins, Timeline) |
+| **Android Client** | `android/` | Flutter mobile client reusing Cognitive Core APIs |
+| **Server** | `prototype/server.py` | FastAPI HTTP bridge for clients |
+| **Runtime** | `prototype/runtime/` | Composition Root wiring all cognitive subsystems |
+
+---id Client** | `android/` | Flutter mobile client reusing Cognitive Core APIs |
+| **Server** | `prototype/server.py` | FastAPI HTTP bridge for clients |
+| **Runtime** | `prototype/runtime/` | Phase 2 Composition Root wiring all subsystems |
 
 ---
 
-## Providers
+## Installation & Setup
 
-### Mock Provider
-- No external dependencies or API keys required
-- Returns canned responses for testing the full pipeline
-- Answers memory-backed questions ("What is my name?")
+### Prerequisites
+- Python 3.12+
+- Flutter SDK 3.18+ (for Android builds)
+- Android SDK 29+ (for Android APK generation)
 
-### NVIDIA Provider
-- Connects to NVIDIA Build (`integrate.api.nvidia.com/v1`)
-- Uses the `openai` Python SDK
-- Supports streaming with automatic fallback to non-streaming
-- Automatic retry with exponential backoff (configurable)
-- Auth errors (401/403) fail fast without retrying
-
-### OpenRouter Provider
-- Connects to OpenRouter (`openrouter.ai`)
-- Uses `urllib` (no extra dependencies beyond stdlib)
-- SSE streaming with fallback
-- Rate-limit detection (429)
-- Automatic retry with backoff
-
-### Provider Abstraction
-All providers inherit from `Provider` (ABC) in `api_provider.py`:
-```python
-class Provider(ABC):
-    def load(self) -> None: ...
-    def generate(self, prompt: str) -> EngineResult: ...
-    def stream(self, prompt: str) -> Iterator[str]: ...
-    def shutdown(self) -> None: ...
-```
-
----
-
-## Settings System
-
-**No Windows environment variables required.** All configuration is stored internally in `prototype/config/config.json`.
-
-### Configuration Keys
-
-| Key | Default | Description |
-|-----|---------|-------------|
-| `provider` | `mock` | Active provider: `mock`, `nvidia`, `openrouter` |
-| `model` | `z-ai/glm-5.2` | Model for NVIDIA provider |
-| `openrouter_model` | `qwen/qwen3-32b` | Model for OpenRouter provider |
-| `temperature` | `0.7` | Generation temperature |
-| `max_tokens` | `4096` | Max response tokens |
-| `timeout` | `30` | Request timeout in seconds |
-| `api_key` | `""` | NVIDIA API key |
-| `openrouter_api_key` | `""` | OpenRouter API key |
-| `max_retries` | `3` | Retry count for failed requests |
-| `retry_delay` | `1.0` | Base retry delay in seconds |
-
-### Runtime Commands
-
-```
-provider [name]  — Show or change provider (mock/nvidia/openrouter)
-model [name]     — Show or change model
-apikey <key>     — Set API key for the current provider
-settings         — Show all settings (API keys masked)
-test             — Test provider connectivity
-```
-
-### Security
-- API keys are **never logged**
-- `settings` command masks keys: `***cdef`
-- `get_all()` always returns masked values
-
-### Migration
-On first run, if environment variables (e.g. `ALFA_NVIDIA_API_KEY`) are set, they are migrated into `config.json` once. After that, `config.json` is the sole authority.
-
----
-
-## Memory
-
-In-process episodic memory with keyword-based recall.
-
-| Command | Action |
-|---------|--------|
-| `remember <text>` | Store a memory |
-| `recall <query>` | Search memories by keyword |
-| `list` | List all memories |
-| `forget <id>` | Delete a memory by ID prefix |
-| `clear` | Delete all memories |
-| `history` | Alias for list |
-
-Memory commands **bypass the LLM** — they are handled directly by the Kernel.
-
----
-
-## Logging
-
-Structured logging to `logs/session.log`:
-
-```
-2026-07-22 10:30:00 INFO alfa.main interaction user='hello' provider=mock latency_ms=0.12 success=True
-2026-07-22 10:30:00 INFO alfa.kernel Memory stored: id=abc12345
-2026-07-22 10:30:01 WARNING alfa.provider.nvidia NVIDIA attempt 1 failed, retrying in 1.0s: timeout
-```
-
-Fields logged:
-- Timestamps (ISO 8601)
-- User input (truncated to 80 chars)
-- Assistant response length
-- Provider name
-- Latency (ms)
-- Errors and warnings
-- **Never** API keys
-
----
-
-## Startup
-
+### Installation
 ```bash
-# Install dependencies
+# Clone the repository
+git clone https://github.com/Qureshi-1/Alfa-OS.git
+cd Alfa-OS
+
+# Install Python dependencies
 pip install -r requirements.txt
 
-# Run the CLI
-python -m prototype.main
-
-# Run the HTTP server
-uvicorn prototype.server:app --reload
+# Install Android Flutter dependencies
+cd android
+flutter pub get
+cd ..
 ```
 
-### Boot Sequence
-1. Load `SettingsManager` from `config.json`
-2. Create components (Kernel, Context, Memory, Planner, Provider, CLI)
-3. Call `.load()` on each component
-4. Wire dependencies via `kernel.set_dependencies()`
-5. Enter interactive loop
+---
+
+## Running Locally
+
+```bash
+# Interactive CLI
+python -m prototype.main
+
+# PySide6 Desktop Application
+python -m prototype.desktop.main_window
+
+# FastAPI HTTP Server (for Mobile Client connection)
+uvicorn prototype.server:app --reload --host 0.0.0.0 --port 8000
+```
+
+---
+
+## Building Desktop Application
+
+### Windows Standalone Executable
+```cmd
+cmd /c build_windows.bat
+# Output: release/desktop/AlfaDesktop.exe
+```
+
+### Linux Standalone Executable
+```bash
+chmod +x build_linux.sh
+./build_linux.sh
+# Output: release/desktop/AlfaDesktop-linux
+```
+
+### Manual PyInstaller Build
+```bash
+python -m PyInstaller --clean alfa_desktop.spec
+```
+
+---
+
+## Building Android Application
+
+### Automated Build (APK + AppBundle)
+```cmd
+# Windows
+cmd /c build_android.bat
+
+# Linux / macOS
+chmod +x build_android.sh
+./build_android.sh
+```
+
+### Manual Flutter Build
+```bash
+cd android
+flutter pub get
+flutter analyze
+flutter test
+flutter build apk --release
+flutter build appbundle --release
+```
+
+Output location:
+- APK: `release/android/alfa-cos-mobile.apk`
+- AppBundle: `release/android/alfa-cos-mobile.aab`
 
 ---
 
 ## Testing
 
 ```bash
-# Run all tests
+# Run complete Python test suite (107 tests)
 python -m pytest tests/ -v
 
-# Quick run
-python -m pytest -q
+# Run Flutter mobile unit and widget tests
+cd android
+flutter test
+cd ..
 ```
 
-### Test Coverage
+---
 
-| Test Class | Tests | Covers |
-|-----------|-------|--------|
-| `TestSettingsManager` | 12 | Defaults, persistence, masking, provider config, validation |
-| `TestGoalInterpreter` | 9 | All command types + freeform |
-| `TestMemory` | 6 | CRUD, search, clear |
-| `TestPlanner` | 2 | Action classification |
-| `TestMockProvider` | 4 | Generate, stream, lifecycle |
-| `TestKernel` | 8 | Full pipeline, memory integration, edge cases |
-| `TestContextManager` | 2 | Build and clear |
-| `TestRuntime` | 2 | Process and memory via runtime |
-| `TestEventBus` | 2 | Pub/sub and unsubscribe |
-| `TestProviderAbstraction` | 2 | ABC enforcement, isinstance |
+## Developer Setup & Architecture Rules
 
-**Total: 49 tests, all passing.**
+1. **Single Source of Truth Configuration**: All settings are stored in `prototype/config/config.json`. API keys are never logged or stored in environment variables.
+2. **Strict Layer Isolation**: Business logic belongs **only** inside the Cognitive Core (`prototype/`). Desktop (PySide6) and Mobile (Flutter) clients must **never** contain business logic.
+3. **No Direct Database Access**: All memory operations pass through `MemoryManager`.
+4. **Interchangeable Providers**: All providers inherit from `Provider` (ABC) in `api_provider.py`. Switching providers requires zero architecture changes.
 
 ---
 
-## Error Handling
+## Troubleshooting
 
-The system **never crashes**. All errors are caught and returned as `EngineResult(success=False, error="...")`:
-
-| Error | Handling |
-|-------|----------|
-| Missing API key | Returned immediately, no retry |
-| Invalid provider | `ValueError` caught at settings level |
-| Auth failure (401/403) | Fast fail, no retry |
-| Timeout | Retry with backoff |
-| Network failure | Retry with backoff |
-| Streaming failure | Automatic fallback to non-streaming |
-| JSON parse error | Caught, returned as error |
-| Empty response | Returned as error |
-| Rate limit (429) | Retry with backoff, logged as warning |
-| Corrupt config.json | Reset to defaults |
-| Any unhandled exception | Caught in main loop, logged |
+| Problem | Cause | Solution |
+|---------|-------|----------|
+| `PySide6` display issues on Linux | Headless environment missing X11/Wayland | Run with `QT_QPA_PLATFORM=offscreen python -m pytest tests/` |
+| Ollama provider fails | Local Ollama daemon not running | Ensure `ollama serve` is running at `http://localhost:11434` |
+| Android API connection error | Emulator using localhost | Ensure Android uses `http://10.0.2.2:8000` to connect to host |
+| `config.json` corrupted | Invalid JSON manual edits | Delete `prototype/config/config.json` — it auto-resets on next launch |
 
 ---
 
-## Future Extension Points
+## Release Process
 
-### For v0.2
+Full release artifacts are generated inside `release/`:
+- `release/desktop/AlfaDesktop.exe` — Windows PySide6 standalone executable
+- `release/android/alfa-cos-mobile.apk` — Production Android APK
+- `release/android/alfa-cos-mobile.aab` — Production Android AppBundle
 
-1. **Persistent Memory** — SQLite or file-based storage for memories that survive restarts
-2. **Conversation History** — Track multi-turn conversations with context window management
-3. **Android Support** — The settings system is designed with no OS-specific dependencies; `config.json` works on any platform
-4. **Plugin System** — The `Provider` ABC and event bus enable third-party extensions
-5. **Multi-Agent** — The `Agent` data type and event bus are scaffolded for agent-to-agent communication
-6. **Tool Use** — The `Tool` data type is defined for future function-calling support
-7. **Security / Policy Layer** — `SecurityCheck` and `PolicyCheck` types are defined for future guardrails
-8. **WebSocket Streaming** — Server-side streaming via WebSocket for the mobile client
-9. **User Authentication** — Session management for multi-user deployments
-10. **Metrics Dashboard** — Latency, token usage, and error rate tracking
+CI/CD is automated via GitHub Actions in `.github/workflows/desktop.yml` and `.github/workflows/android.yml`.
 
 ---
 
 ## License
 
-Internal prototype — not for distribution.
+Alfa COS Production Release.
+
+

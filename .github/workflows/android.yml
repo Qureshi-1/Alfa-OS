@@ -1,0 +1,57 @@
+name: Alfa COS Android CI/CD
+
+on:
+  push:
+    branches: [ main, master, development ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  test-and-build-android:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Java JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Set up Flutter SDK
+        uses: subosito/flutter-action@v2
+        with:
+          channel: 'stable'
+
+      - name: Install Dependencies
+        working-directory: ./android
+        run: flutter pub get
+
+      - name: Analyze Code
+        working-directory: ./android
+        run: flutter analyze
+
+      - name: Run Tests
+        working-directory: ./android
+        run: flutter test
+
+      - name: Build Android APK
+        working-directory: ./android
+        run: flutter build apk --release
+
+      - name: Build Android AppBundle
+        working-directory: ./android
+        run: flutter build appbundle --release
+
+      - name: Upload Android APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: alfa-android-apk
+          path: android/build/app/outputs/flutter-apk/app-release.apk
+
+      - name: Upload Android AppBundle
+        uses: actions/upload-artifact@v4
+        with:
+          name: alfa-android-appbundle
+          path: android/build/app/outputs/bundle/release/app-release.aab

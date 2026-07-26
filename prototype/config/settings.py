@@ -22,7 +22,7 @@ logger = logging.getLogger("alfa.config")
 
 DEFAULT_CONFIG: Dict[str, Any] = {
     "provider": "mock",
-    "model": "z-ai/glm-5.2",
+    "model": "meta/llama-3.3-70b-instruct",
     "temperature": 0.7,
     "max_tokens": 4096,
     "timeout": 30,
@@ -31,11 +31,17 @@ DEFAULT_CONFIG: Dict[str, Any] = {
     "openrouter_model": "qwen/qwen3-32b",
     "openrouter_api_key": "",
     "openrouter_base_url": "https://openrouter.ai/api/v1/chat/completions",
+    "ollama_model": "llama3.2",
+    "ollama_base_url": "http://localhost:11434",
     "max_retries": 3,
     "retry_delay": 1.0,
+    "stream": True,
+    "memory_enabled": True,
+    "logging_level": "INFO",
+    "theme": "dark",
 }
 
-VALID_PROVIDERS = ("mock", "nvidia", "openrouter")
+VALID_PROVIDERS = ("mock", "nvidia", "openrouter", "ollama")
 
 # Keys that contain secrets — never log their values.
 _SECRET_KEYS = frozenset({"api_key", "openrouter_api_key"})
@@ -150,13 +156,22 @@ class SettingsManager:
             )
 
     def get_model(self) -> str:
-        if self.get_provider() == "openrouter":
+        provider = self.get_provider()
+        if provider == "openrouter":
             return self._config.get("openrouter_model", "qwen/qwen3-32b")
-        return self._config.get("model", "z-ai/glm-5.2")
+        if provider == "ollama":
+            return self._config.get("ollama_model", "llama3.2")
+        model = self._config.get("model", "meta/llama-3.3-70b-instruct")
+        if model == "z-ai/glm-5.2":
+            return "meta/llama-3.3-70b-instruct"
+        return model
 
     def set_model(self, model: str) -> None:
-        if self.get_provider() == "openrouter":
+        provider = self.get_provider()
+        if provider == "openrouter":
             self.set("openrouter_model", model)
+        elif provider == "ollama":
+            self.set("ollama_model", model)
         else:
             self.set("model", model)
 
@@ -198,6 +213,11 @@ class SettingsManager:
                 "openrouter_base_url",
                 "https://openrouter.ai/api/v1/chat/completions",
             )
+        elif provider == "ollama":
+            cfg["api_key"] = ""  # Ollama doesn't require API keys
+            cfg["base_url"] = self._config.get(
+                "ollama_base_url", "http://localhost:11434"
+            )
         return cfg
 
     # ── Display / safety ──────────────────────────────────────────────────
@@ -238,6 +258,8 @@ class SettingsManager:
                 return self._test_nvidia(start)
             elif provider_name == "openrouter":
                 return self._test_openrouter(start)
+            elif provider_name == "ollama":
+                return self._test_ollama(start)
             else:
                 return {
                     "connected": False,
@@ -252,6 +274,37 @@ class SettingsManager:
                 "error": str(exc),
                 "provider": provider_name,
                 "message": "Connection test failed",
+            }
+
+    def _test_ollama(self, start: float) -> Dict[str, Any]:
+        import urllib.request
+        base_url = self._config.get("ollama_base_url", "http://localhost:11434")
+        try:
+            req = urllib.request.Request(f"{base_url}/api/tags", method="GET")
+            with urllib.request.urlopen(req, timeout=5) as resp:
+                latency = round((time.time() - start) * 1000, 2)
+                if resp.status == 200:
+                    return {
+                        "connected": True,
+                        "latency_ms": latency,
+                        "error": None,
+                        "provider": "ollama",
+                        "message": "Ollama connection successful",
+                    }
+                return {
+                    "connected": False,
+                    "latency_ms": latency,
+                    "error": f"HTTP {resp.status}",
+                    "provider": "ollama",
+                    "message": "Ollama connection failed",
+                }
+        except Exception as exc:
+            return {
+                "connected": False,
+                "latency_ms": round((time.time() - start) * 1000, 2),
+                "error": str(exc),
+                "provider": "ollama",
+                "message": "Ollama connection failed",
             }
 
     def _test_nvidia(self, start: float) -> Dict[str, Any]:

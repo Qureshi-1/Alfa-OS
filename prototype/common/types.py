@@ -34,7 +34,8 @@ class Context:
 
 
 @dataclass
-class Memory:
+class MemoryState:
+    """Cognitive memory state snapshot — distinct from the Memory engine."""
     working: List[Any] = field(default_factory=list)
     long_term: List[Any] = field(default_factory=list)
     knowledge: List[Any] = field(default_factory=list)
