@@ -12,6 +12,15 @@ from prototype.execution.task_executor import TaskExecutor
 from prototype.execution.tool_router import ToolRouter
 from prototype.execution.execution_runtime import ExecutionRuntime
 
+from prototype.execution.cognitive_scheduler import (
+    CognitiveScheduler,
+    TaskPriority,
+    ScheduledTask,
+    CognitiveResourceManager,
+    AttentionAllocator,
+    ExecutionQueue,
+)
+
 __all__ = [
     "ExecutionContext", "ExecutionMode", "RetryConfig", "RollbackConfig",
     "TaskExecutionResult", "ExecutionPlanResult", "TaskStatus",
@@ -20,4 +29,10 @@ __all__ = [
     "TaskExecutor",
     "ToolRouter",
     "ExecutionRuntime",
+    "CognitiveScheduler",
+    "TaskPriority",
+    "ScheduledTask",
+    "CognitiveResourceManager",
+    "AttentionAllocator",
+    "ExecutionQueue",
 ]
