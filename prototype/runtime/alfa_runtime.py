@@ -1,14 +1,16 @@
 """Alfa COS Runtime — complete cognitive system composition root.
 
 The AlfaRuntime wires together all cognitive subsystems:
-- Kernel (orchestration)
+- Kernel (built-in commands)
+- CognitionRuntime (primary cognition pipeline)
+- ModelHub (universal model registry + router)
 - Executive Controller (goal management)
 - Planner (task decomposition)
 - Memory Manager (working + persistent)
 - Decision Engine (action selection)
 - Reflection Engine (quality evaluation)
 - Learning Engine (insight storage)
-- Provider (AI reasoning backend)
+- Provider (legacy AI reasoning backend)
 - Tool Manager (external capabilities)
 - Plugin Manager (extensions)
 - Worker Manager (background execution)
@@ -44,7 +46,22 @@ from prototype.reflection import ReflectionEngine
 from prototype.tools import ToolManager
 from prototype.worker import WorkerManager
 
-# New cognition modules
+# Cognition pipeline
+from prototype.cognition import CognitionRuntime
+
+# ModelHub — universal model backend
+from prototype.modelhub import (
+    ModelRegistry,
+    ModelRouter,
+    ModelDetector,
+    GenerateRequest,
+    get_model_registry,
+    get_model_router,
+    get_model_detector,
+)
+from prototype.modelhub.base import ProviderType
+
+# New modules
 from prototype.agent.agent_runtime import AgentRuntime
 from prototype.services.service_registry import ServiceRegistry
 from prototype.diagnostics.diagnostics import Diagnostics
@@ -66,7 +83,7 @@ class AlfaRuntime:
         # Event Bus — shared communication backbone
         self.event_bus = EventBus()
 
-        # Cognitive Core
+        # Cognitive Core (legacy)
         self.kernel = Kernel()
         self.context_manager = ContextManager()
         self.executive = ExecutiveController(event_bus=self.event_bus)
@@ -83,10 +100,10 @@ class AlfaRuntime:
             event_bus=self.event_bus,
         )
 
-        # Planning
+        # Planning (legacy)
         self.planner = Planner()
 
-        # Provider
+        # Legacy Provider
         self.provider: Provider = self._create_provider()
 
         # Tools, Plugins & Workers
@@ -100,11 +117,29 @@ class AlfaRuntime:
             event_bus=self.event_bus,
         )
 
+        # ModelHub — universal model registry + router
+        self.model_registry = ModelRegistry(event_bus=self.event_bus)
+        self.model_router = ModelRouter(registry=self.model_registry)
+        self.model_detector = ModelDetector()
+
+        # CognitionRuntime — primary cognition pipeline
+        self.cognition = CognitionRuntime(
+            event_bus=self.event_bus,
+            memory_manager=self.memory_manager,
+            tool_manager=self.tool_manager,
+            agent_runtime=self.agent_runtime,
+            worker_manager=self.worker_manager,
+            diagnostics=None,  # Set after Diagnostics is created
+        )
+
         # Service Registry — internal module discovery
         self.service_registry = ServiceRegistry()
 
         # Diagnostics — health & metrics
         self.diagnostics = Diagnostics()
+
+        # Now wire diagnostics into cognition
+        self.cognition._diagnostics = self.diagnostics
 
         # Component list for lifecycle management (load/shutdown order)
         self._components = [
@@ -153,6 +188,15 @@ class AlfaRuntime:
         # Load agent runtime (depends on tool_manager being loaded)
         self.agent_runtime.load()
 
+        # Load ModelHub
+        self.model_registry.load()
+        self._register_modelhub_providers()
+        self.model_router.load()
+
+        # Load CognitionRuntime and wire handlers
+        self.cognition.load()
+        self._wire_cognition_handlers()
+
         # Register core services
         self.service_registry.register(
             "kernel", description="Central orchestrator",
@@ -182,6 +226,14 @@ class AlfaRuntime:
             "agents", description="Agent runtime",
             health_fn=lambda: self.agent_runtime.is_loaded(),
         )
+        self.service_registry.register(
+            "cognition", description="Cognition pipeline",
+            health_fn=lambda: self.cognition.is_loaded(),
+        )
+        self.service_registry.register(
+            "modelhub", description="Universal model hub",
+            health_fn=lambda: len(self.model_registry.list_providers()) >= 0,
+        )
 
         # Register health checks for diagnostics
         self.diagnostics.register_health_check(
@@ -189,10 +241,10 @@ class AlfaRuntime:
             lambda: self._health_check("runtime"),
         )
 
-        # Wire kernel dependencies (backwards compatible with v0.1)
+        # Wire kernel dependencies (backwards compatible for built-in commands)
         self.kernel.set_dependencies(
             planner=self.planner,
-            memory=self.working_memory,  # Kernel still uses working memory directly
+            memory=self.working_memory,
             provider=self.provider,
         )
 
@@ -205,9 +257,11 @@ class AlfaRuntime:
         ))
 
         logger.info(
-            "Runtime loaded: provider=%s components=%d",
+            "Runtime loaded: provider=%s components=%d cognition=%s modelhub_providers=%d",
             self.provider_name,
             len(self._components),
+            self.cognition.is_loaded(),
+            len(self.model_registry.list_providers()),
         )
 
     def _health_check(self, component: str):
@@ -222,7 +276,12 @@ class AlfaRuntime:
     def process(self, user_input: str) -> EngineResult:
         """Process user input through the full cognitive pipeline.
 
-        Pipeline: Input → Context → Executive → Decision → Kernel → Reflection
+        Pipeline:
+        1. Kernel handles built-in commands (remember, recall, help, etc.)
+        2. CognitionRuntime handles everything else via full cognition pipeline:
+           Input → Perception → Planning → Reasoning → Execution → Reflection
+        3. Executive tracks execution lifecycle
+        4. Reflection evaluates quality and feeds Learning
         """
         if not self._loaded:
             raise RuntimeError("AlfaRuntime must be loaded before processing input")
@@ -242,12 +301,16 @@ class AlfaRuntime:
             goal, provider_available=True, has_memory=has_memory
         )
 
-        # 4. Kernel: process through pipeline
-        result = self.kernel.process(user_input, context)
+        # 4. Try Kernel first for built-in commands (remember, recall, help, etc.)
+        #    If the Kernel returns a built-in result, use it.
+        #    Otherwise, route to CognitionRuntime for full cognition.
+        result = self._process_through_pipeline(user_input, context)
 
         latency_ms = (time.time() - start) * 1000
 
         # 5. Record diagnostics
+        self.diagnostics.record("runtime.latency_ms", latency_ms)
+        self.diagnostics.increment("runtime.process_count")
         self.diagnostics.record("kernel.latency_ms", latency_ms)
         self.diagnostics.increment("kernel.process_count")
 
@@ -279,6 +342,35 @@ class AlfaRuntime:
 
         return result
 
+    def _process_through_pipeline(
+        self, user_input: str, context: Context,
+    ) -> EngineResult:
+        """Route input: built-in commands → Kernel, everything else → CognitionRuntime."""
+        from prototype.kernel.goal_interpreter import GoalInterpreter
+        interpreter = GoalInterpreter()
+        goal = interpreter.interpret(user_input)
+
+        # Built-in commands bypass cognition — they go through the fast Kernel path
+        builtin_goals = {
+            "EMPTY", "EXIT", "REMEMBER", "RECALL", "LIST",
+            "FORGET", "CLEAR", "HISTORY", "HELP",
+        }
+        if goal.name in builtin_goals:
+            return self.kernel.process(user_input, context)
+
+        # Everything else goes through the full CognitionRuntime pipeline
+        try:
+            return self.cognition.process(
+                user_input,
+                context={
+                    "provider_name": self.provider_name,
+                    "model_name": self._settings.get_model(),
+                },
+            )
+        except Exception as exc:
+            logger.warning("CognitionRuntime failed, falling back to Kernel: %s", exc)
+            return self.kernel.process(user_input, context)
+
     def switch_provider(self, provider_name: str) -> None:
         """Switch the active provider without restart."""
         self._settings.set_provider(provider_name)
@@ -309,6 +401,8 @@ class AlfaRuntime:
             "plugins": self.plugin_manager.list_plugins(),
             "workers": self.worker_manager.get_stats(),
             "agents": self.agent_runtime.get_stats(),
+            "cognition": self.cognition.get_stats(),
+            "modelhub": self.model_registry.get_stats(),
             "services": self.service_registry.list_services(),
             "diagnostics": self.diagnostics.get_stats(),
         }
@@ -324,7 +418,12 @@ class AlfaRuntime:
             source="runtime",
         ))
 
-        # Shutdown new modules first
+        # Shutdown cognition and modelhub first
+        self.cognition.shutdown()
+        self.model_router.shutdown()
+        self.model_registry.shutdown()
+
+        # Shutdown new modules
         self.diagnostics.stop_monitoring()
         self.service_registry.stop_health_monitor()
         self.agent_runtime.shutdown()
@@ -337,3 +436,149 @@ class AlfaRuntime:
 
         self._loaded = False
         logger.info("Runtime shutdown complete")
+
+    # ── ModelHub wiring ───────────────────────────────────────────────────
+
+    def _register_modelhub_providers(self) -> None:
+        """Register ModelHub providers based on available configurations."""
+        # Register Ollama provider (local)
+        try:
+            from prototype.modelhub.providers.ollama import OllamaProvider as MHOllama
+            ollama_config = {
+                "base_url": self._settings.get("ollama_base_url", "http://localhost:11434"),
+                "timeout": self._settings.get("ollama_timeout", 60),
+            }
+            self.model_registry.register_provider(MHOllama(config=ollama_config))
+        except Exception as exc:
+            logger.debug("Ollama ModelHub provider not available: %s", exc)
+
+        # Register NVIDIA provider (cloud)
+        try:
+            api_key = self._settings.get("api_key", "")
+            if api_key:
+                from prototype.modelhub.providers.nvidia import NvidiaProvider as MHNvidia
+                self.model_registry.register_provider(MHNvidia(config={"api_key": api_key}))
+        except Exception as exc:
+            logger.debug("NVIDIA ModelHub provider not available: %s", exc)
+
+        # Register OpenRouter provider (cloud)
+        try:
+            or_key = self._settings.get("openrouter_api_key", "")
+            if or_key:
+                from prototype.modelhub.providers.openrouter import OpenRouterProvider as MHOpenRouter
+                self.model_registry.register_provider(MHOpenRouter(config={"api_key": or_key}))
+        except Exception as exc:
+            logger.debug("OpenRouter ModelHub provider not available: %s", exc)
+
+        logger.info(
+            "ModelHub providers registered: %d",
+            len(self.model_registry.list_providers()),
+        )
+
+    # ── CognitionRuntime wiring ───────────────────────────────────────────
+
+    def _wire_cognition_handlers(self) -> None:
+        """Wire real tool/agent/worker handlers into CognitionRuntime.
+
+        This replaces placeholder execution with production implementations.
+        """
+        # Register all tools from ToolManager into CognitionRuntime
+        for tool_info in self.tool_manager.list_tools():
+            tool_name = tool_info.get("name", "")
+            if tool_name:
+                self.cognition.register_tool(
+                    name=tool_name,
+                    capabilities=[tool_info.get("description", tool_name)],
+                    handler=self._make_tool_handler(tool_name),
+                )
+
+        # Register LLM inference as a tool (the default execution for conversation)
+        # Capabilities must match ALL planner action types: respond, reason, generate,
+        # parse, verify, gather, tool_select, analyze, execute
+        self.cognition.register_tool(
+            name="llm_inference",
+            capabilities=[
+                "generate", "chat", "conversation", "query", "answer",
+                "reason", "analyze", "explain", "write", "create",
+                "respond", "parse", "verify", "gather", "tool_select",
+                "execute", "report", "process",
+            ],
+            handler=self._llm_inference_handler,
+        )
+
+        # Register memory operations
+        self.cognition.register_tool(
+            name="memory_recall",
+            capabilities=["recall", "remember", "search", "retrieve", "memory"],
+            handler=self._memory_recall_handler,
+        )
+        self.cognition.register_tool(
+            name="memory_store",
+            capabilities=["store", "save", "persist", "memorize"],
+            handler=self._memory_store_handler,
+        )
+
+        logger.info(
+            "CognitionRuntime wired: %d tool handlers",
+            len(self.cognition.executor._tool_handlers),
+        )
+
+    def _make_tool_handler(self, tool_name: str):
+        """Create a handler closure for a ToolManager tool."""
+        def handler(params):
+            result = self.tool_manager.execute(tool_name, params)
+            if result.success:
+                return result.result
+            raise RuntimeError(result.error or f"Tool '{tool_name}' failed")
+        return handler
+
+    def _llm_inference_handler(self, params: dict):
+        """Handle LLM inference through ModelHub or legacy provider."""
+        prompt = params.get("prompt", params.get("input", params.get("query", "")))
+        if not prompt:
+            # Fallback: use any string value we can find
+            for v in params.values():
+                if isinstance(v, str) and len(v) > 0:
+                    prompt = v
+                    break
+
+        # Try ModelHub first
+        if self.model_registry.list_providers():
+            try:
+                request = GenerateRequest(
+                    prompt=prompt,
+                    system_prompt=(
+                        "You are Alfa COS, a concise and helpful personal AI assistant. "
+                        "Use the remembered facts when they are relevant. If the memory "
+                        "does not contain the answer, say so rather than inventing one."
+                    ),
+                    model=self._settings.get_model(),
+                    temperature=self._settings.get("temperature", 0.7),
+                    max_tokens=self._settings.get("max_tokens", 4096),
+                )
+                response = self.model_router.generate(request)
+                if response.success:
+                    self.diagnostics.increment("modelhub.inference_count")
+                    return response.content
+            except Exception as exc:
+                logger.debug("ModelHub inference failed, falling back: %s", exc)
+
+        # Fallback to legacy provider
+        result = self.provider.generate(prompt)
+        return result.content
+
+    def _memory_recall_handler(self, params: dict):
+        """Handle memory recall through MemoryManager."""
+        query = params.get("query", params.get("input", ""))
+        results = self.memory_manager.recall(query, limit=5)
+        if not results:
+            return "No relevant memories found."
+        return "\n".join(f"- {r.content}" for r in results)
+
+    def _memory_store_handler(self, params: dict):
+        """Handle memory storage through MemoryManager."""
+        content = params.get("content", params.get("input", ""))
+        if content:
+            ep = self.memory_manager.remember(content, persist=True)
+            return f"Stored memory: {ep.id[:8]}"
+        return "Nothing to store."

@@ -211,4 +211,27 @@ class ApiService {
   Future<Map<String, dynamic>> postReflection(String executionId, double qualityScore) async {
     return _post('/reflection', {'execution_id': executionId, 'quality_score': qualityScore});
   }
+
+  // ── Universal ModelHub & Cognition Runtime API ────────────────────────────
+
+  Future<Map<String, dynamic>> getModelHubModels({String? provider, bool localOnly = false, String? family}) async {
+    final queryParams = <String>[];
+    if (provider != null) queryParams.add('provider=${Uri.encodeComponent(provider)}');
+    if (localOnly) queryParams.add('local_only=true');
+    if (family != null) queryParams.add('family=${Uri.encodeComponent(family)}');
+    final queryString = queryParams.isNotEmpty ? '?${queryParams.join('&')}' : '';
+    return _get('/modelhub/models$queryString');
+  }
+
+  Future<Map<String, dynamic>> getModelHubProviders() async {
+    return _get('/modelhub/providers');
+  }
+
+  Future<Map<String, dynamic>> searchModelHub(String query) async {
+    return _get('/modelhub/search?query=${Uri.encodeComponent(query)}');
+  }
+
+  Future<Map<String, dynamic>> getCognitionStatus() async {
+    return _get('/cognition/status');
+  }
 }

@@ -114,7 +114,7 @@ async def lifespan(application: FastAPI):
     runtime = AlfaRuntime()
     runtime.load()
     application.state.runtime = runtime
-    logger.info("Alfa COS Server runtime v0.3.0 started with provider=%s", runtime.provider_name)
+    logger.info("Alfa COS Server runtime v1.0.0 started with provider=%s", runtime.provider_name)
     yield
     runtime.shutdown()
     logger.info("Alfa COS Server runtime stopped")
@@ -123,7 +123,7 @@ async def lifespan(application: FastAPI):
 app = FastAPI(
     title="Alfa COS API",
     description="Cognitive Operating System REST Backend",
-    version="0.3.0",
+    version="1.0.0",
     lifespan=lifespan,
 )
 
@@ -161,7 +161,9 @@ def healthcheck() -> Dict[str, Any]:
         "status": "ok",
         "provider": runtime.provider_name,
         "loaded": runtime._loaded,
-        "version": "0.3.0",
+        "cognition_loaded": runtime.cognition.is_loaded(),
+        "modelhub_providers": len(runtime.model_registry.list_providers()),
+        "version": "1.0.0",
     }
 
 
@@ -524,3 +526,57 @@ def update_settings(request: SettingsUpdateRequest) -> Dict[str, Any]:
 
     settings.save()
     return {"success": True, "settings": settings.get_all()}
+
+
+# ── ModelHub Endpoints ────────────────────────────────────────────────────────
+
+@app.get("/modelhub/models")
+def get_models(
+    provider: Optional[str] = Query(default=None),
+    local_only: bool = Query(default=False),
+    family: Optional[str] = Query(default=None),
+) -> Dict[str, Any]:
+    """List all discovered models from ModelHub."""
+    runtime = get_runtime()
+    from prototype.modelhub.base import ProviderType as PT
+    ptype = PT(provider) if provider else None
+    models = runtime.model_registry.list_models(
+        provider=ptype, local_only=local_only, family=family,
+    )
+    return {
+        "models": [m.to_dict() for m in models],
+        "count": len(models),
+        "stats": runtime.model_registry.get_stats(),
+    }
+
+
+@app.get("/modelhub/providers")
+def get_modelhub_providers() -> Dict[str, Any]:
+    """List ModelHub providers and health."""
+    runtime = get_runtime()
+    return {
+        "providers": [p.value for p in runtime.model_registry.list_providers()],
+        "health": runtime.model_router.health_check(),
+    }
+
+
+@app.get("/modelhub/search")
+def search_models(query: str = Query(min_length=1)) -> Dict[str, Any]:
+    """Search models in ModelHub."""
+    runtime = get_runtime()
+    results = runtime.model_registry.search_models(query)
+    return {
+        "query": query,
+        "results": [m.to_dict() for m in results],
+        "count": len(results),
+    }
+
+
+# ── CognitionRuntime Endpoints ────────────────────────────────────────────────
+
+@app.get("/cognition/status")
+def get_cognition_status() -> Dict[str, Any]:
+    """Get CognitionRuntime status and stats."""
+    runtime = get_runtime()
+    return runtime.cognition.get_stats()
+

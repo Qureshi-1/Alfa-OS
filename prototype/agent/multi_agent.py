@@ -35,6 +35,7 @@ class MultiAgentCoordinator:
             "parallel": self._run_parallel,
             "debate": self._run_debate,
             "pipeline": self._run_pipeline,
+            "advisor_orchestrator": self._run_advisor_orchestrator,
         }
 
     def run(self, agent_ids: List[str], context: AgentContext,
@@ -181,6 +182,29 @@ class MultiAgentCoordinator:
                       context: AgentContext) -> Dict[str, AgentResult]:
         """Pipeline: each agent transforms the output of the previous."""
         return self._run_sequential(agents, context)
+
+    def _run_advisor_orchestrator(self, agents: List[BaseAgent],
+                                  context: AgentContext) -> Dict[str, AgentResult]:
+        """Advisor-Orchestrator-Worker three-tier pattern."""
+        from prototype.agent.advisor_orchestrator import AdvisorOrchestratorCoordinator
+        coord = AdvisorOrchestratorCoordinator(
+            event_bus=self._event_bus,
+            agent_registry=self._registry,
+        )
+        res_pipeline = coord.run_three_tier_pipeline(context.goal or "3-Tier Delegation Task")
+        
+        # Format into Dict[str, AgentResult] for backward compatibility
+        results: Dict[str, AgentResult] = {}
+        for agent in agents:
+            is_success = res_pipeline.get("success", False)
+            results[agent.agent_id] = AgentResult(
+                agent_id=agent.agent_id,
+                task_id=context.task_id,
+                status=AgentStatus.COMPLETED if is_success else AgentStatus.FAILED,
+                output=res_pipeline.get("deliverable", ""),
+                execution_time_ms=res_pipeline.get("total_time_ms", 0.0),
+            )
+        return results
 
     def _publish_event(self, event_type: str, payload: Dict[str, Any]) -> None:
         if self._event_bus:

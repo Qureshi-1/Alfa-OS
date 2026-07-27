@@ -70,7 +70,7 @@ class OllamaProvider(ModelProvider):
         # Infer capabilities from model name/size
         caps = ModelCapabilities(
             max_context_length=details.get("context_length", 4096),
-            supports_streaming=True,
+            streaming=True,
         )
 
         model_info = ModelInfo(
@@ -242,12 +242,13 @@ class OllamaProvider(ModelProvider):
     def _parse_param_count(self, param_str: str) -> int:
         if not param_str:
             return 0
-        param_str = param_str.upper().replace("B", "").replace("M", "")
+        original = param_str.upper()
+        numeric_str = original.replace("B", "").replace("M", "").strip()
         try:
-            val = float(param_str)
-            if "B" in param_str.upper():
+            val = float(numeric_str)
+            if "B" in original:
                 return int(val * 1_000_000_000)
-            if "M" in param_str.upper():
+            if "M" in original:
                 return int(val * 1_000_000)
             return int(val)
         except ValueError:

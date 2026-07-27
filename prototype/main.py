@@ -54,9 +54,9 @@ def log_interaction(
 
 
 def boot_sequence() -> None:
-    print("=" * 45)
-    print("  Alfa COS Phase 2 — Cognitive Operating System")
-    print("=" * 45)
+    print("=" * 50)
+    print("  Alfa COS v1.0 — Cognitive Operating System")
+    print("=" * 50)
     print()
 
     reset_settings_manager()
@@ -72,7 +72,11 @@ def boot_sequence() -> None:
     print("[✓] Memory Manager (Working + SQLite) Loaded")
     print("[✓] Tool Manager Loaded")
     print("[✓] Plugin Manager Loaded")
-    print("[✓] Cognitive Core Pipeline Active")
+    print("[✓] Agent Runtime Loaded")
+    print("[✓] CognitionRuntime Loaded (Perception → Planning → Reasoning → Execution → Reflection)")
+    modelhub_count = len(runtime.model_registry.list_providers())
+    print(f"[✓] ModelHub Loaded ({modelhub_count} providers)")
+    print("[✓] Full Cognitive Pipeline Active")
 
     provider_name = runtime.provider_name
     model_name = settings.get_model()
@@ -80,11 +84,11 @@ def boot_sequence() -> None:
     print(f"Provider : {provider_name}")
     print(f"Model    : {model_name}")
     print()
-    print("Alfa COS Phase 2 Ready.")
+    print("Alfa COS v1.0 Ready.")
     print("Type 'help' for available commands or 'desktop' to launch PySide6 Desktop UI.")
     print()
 
-    logger.info("boot provider=%s model=%s phase=2", provider_name, model_name)
+    logger.info("boot provider=%s model=%s version=1.0", provider_name, model_name)
 
     # ── Main loop ─────────────────────────────────────────────────────────
 
