@@ -17,11 +17,26 @@ from .virtual_memory import (
     PageState,
 )
 
+from .knowledge_graph_runtime import (
+    KnowledgeGraphRuntime,
+    PersistentGraphStore,
+    GraphTraversal,
+    GraphEntity,
+    GraphRelation,
+)
+
 __all__ = [
     "Memory", "PersistentMemory", "MemoryManager",
-    "MemoryEntry", "MemoryType", "QueryResult",
-    "GraphNode", "GraphEdge",
-    "WorkingMemoryInterface", "LongTermMemoryInterface",
-    "GraphMemoryInterface", "VectorMemoryInterface",
     "MemoryRuntimeInterface", "DefaultMemoryRuntime",
+    "CognitiveVirtualMemory",
+    "ContextPageTable",
+    "KnowledgePageManager",
+    "CognitiveCacheManager",
+    "CognitiveRetrievalManager",
+    "PageState",
+    "KnowledgeGraphRuntime",
+    "PersistentGraphStore",
+    "GraphTraversal",
+    "GraphEntity",
+    "GraphRelation",
 ]
