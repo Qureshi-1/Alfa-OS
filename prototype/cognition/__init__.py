@@ -18,6 +18,15 @@ from .probabilistic_reasoning import (
 )
 from .cognition_runtime import CognitionRuntime
 
+from .hypervisor import (
+    CognitiveHypervisor,
+    SnapshotManager,
+    ReasoningSandbox,
+    HypothesisEnvironment,
+    SpeculativeExecutor,
+    StateSnapshot,
+)
+
 __all__ = [
     "PerceptionEngine", "PerceptionResult",
     "TaskPlanner", "TaskPlan",
@@ -31,4 +40,10 @@ __all__ = [
     "ConfidencePropagator",
     "Hypothesis",
     "UncertaintyMetrics",
+    "CognitiveHypervisor",
+    "SnapshotManager",
+    "ReasoningSandbox",
+    "HypothesisEnvironment",
+    "SpeculativeExecutor",
+    "StateSnapshot",
 ]
