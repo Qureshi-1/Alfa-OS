@@ -151,3 +151,27 @@ class CognitiveHypervisor:
             source="cognitive_hypervisor",
         ))
         return spec_res
+
+    def evaluate_parallel_hypotheses(
+        self,
+        hypotheses: Dict[str, Callable[[Dict[str, Any]], Any]],
+        initial_state: Dict[str, Any],
+    ) -> Dict[str, Any]:
+        """Evaluate multiple hypotheses in parallel isolated sandboxes."""
+        return self.run_speculative_trials(hypotheses, initial_state)
+
+
+class CognitiveVM:
+    """Virtual Machine environment for isolated cognitive task execution."""
+
+    def __init__(self, hypervisor: CognitiveHypervisor) -> None:
+        self.hypervisor = hypervisor
+
+    def run_vm_task(self, task_fn: Callable[[Dict[str, Any]], Any], initial_state: Dict[str, Any]) -> Dict[str, Any]:
+        snapshot_id = self.hypervisor.checkpoint(initial_state, label="vm_start")
+        ok, out, err = self.hypervisor.sandbox.run_isolated(task_fn, initial_state)
+        if not ok:
+            restored = self.hypervisor.rollback(snapshot_id)
+            return {"success": False, "error": err, "restored_state": restored}
+        return {"success": True, "output": out}
+
