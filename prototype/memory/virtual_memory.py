@@ -248,6 +248,30 @@ class CognitiveRetrievalManager:
         return {"source": "federated_search", "results": combined}
 
 
+class MemoryCompressor:
+    """Memory compression engine for context framing and page compaction."""
+
+    def compress(self, text: str, ratio: float = 0.5) -> str:
+        """Compress text by retaining key segments."""
+        if not text:
+            return ""
+        lines = [line.strip() for line in text.split("\n") if line.strip()]
+        if not lines:
+            return text
+        keep_count = max(1, int(len(lines) * ratio))
+        return "\n".join(lines[:keep_count])
+
+
+class EvictionPolicy:
+    """Eviction policy manager (LRU, TTL, Importance)."""
+
+    def should_evict(self, last_accessed: float, ttl_seconds: float = 3600.0, importance: int = 0) -> bool:
+        if importance >= 9:
+            return False  # Critical items never evict
+        age = time.time() - last_accessed
+        return age > ttl_seconds
+
+
 class CognitiveVirtualMemory:
     """Unified Virtual Memory System for ALFA COS v1.1."""
 
@@ -257,6 +281,8 @@ class CognitiveVirtualMemory:
         self.knowledge = KnowledgePageManager()
         self.cache = CognitiveCacheManager()
         self.retrieval = CognitiveRetrievalManager(self.page_table, self.knowledge, self.cache)
+        self.compressor = MemoryCompressor()
+        self.eviction_policy = EvictionPolicy()
         self._loaded = False
 
     def load(self) -> None:
@@ -275,6 +301,14 @@ class CognitiveVirtualMemory:
         ))
         return page.page_id
 
+    def compress_page(self, page_id: str, ratio: float = 0.5) -> Optional[str]:
+        page = self.page_table.access_page(page_id)
+        if page:
+            page.content = self.compressor.compress(page.content, ratio=ratio)
+            page.token_count = max(1, len(page.content) // 4)
+            return page.content
+        return None
+
     def store_knowledge(self, topic: str, content: str, tags: Optional[List[str]] = None) -> str:
         return self.knowledge.store_knowledge(topic, content, tags)
 
@@ -287,3 +321,4 @@ class CognitiveVirtualMemory:
             "swapped_pages": len(self.page_table.swap_space),
             "l1_cache_entries": len(self.cache._l1_cache),
         }
+
