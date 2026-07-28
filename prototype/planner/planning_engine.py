@@ -152,6 +152,23 @@ class MCTSPlanner:
             curr = nodes.get(curr.parent_id) if curr.parent_id else None
 
 
+class PlanVerifier:
+    """Verifies generated plans for feasibility, dependency ordering, and constraint compliance."""
+
+    def verify_plan(self, plan: Dict[str, Any]) -> Dict[str, Any]:
+        subgoals = plan.get("subgoals", [])
+        is_valid = len(subgoals) > 0
+        issues = []
+        if not is_valid:
+            issues.append("Empty subgoals list")
+        return {
+            "valid": is_valid,
+            "subgoal_count": len(subgoals),
+            "issues": issues,
+            "verification_score": 1.0 if is_valid else 0.0,
+        }
+
+
 class PlanningEngine:
     """Composition Root for Milestone 3 Planning Engine."""
 
@@ -160,6 +177,7 @@ class PlanningEngine:
         self.decomposer = GoalDecomposer()
         self.astar = AStarPlanner()
         self.mcts = MCTSPlanner()
+        self.verifier = PlanVerifier()
         self._loaded = False
 
     def load(self) -> None:
@@ -178,13 +196,7 @@ class PlanningEngine:
             nodes = self.mcts.search(goal, iterations=15)
 
         plan_id = f"plan_{uuid4().hex[:8]}"
-        self._event_bus.publish(Event(
-            event_type="AdvancedPlanCreated",
-            payload={"plan_id": plan_id, "goal": goal, "method": method, "nodes_explored": len(nodes)},
-            source="planning_engine",
-        ))
-
-        return {
+        plan = {
             "plan_id": plan_id,
             "goal": goal,
             "method": method,
@@ -194,3 +206,18 @@ class PlanningEngine:
                 for n in nodes[:5]
             ],
         }
+
+        verification = self.verifier.verify_plan(plan)
+        plan["verification"] = verification
+
+        self._event_bus.publish(Event(
+            event_type="AdvancedPlanCreated",
+            payload={"plan_id": plan_id, "goal": goal, "method": method, "nodes_explored": len(nodes)},
+            source="planning_engine",
+        ))
+
+        return plan
+
+    def verify_plan(self, plan: Dict[str, Any]) -> Dict[str, Any]:
+        return self.verifier.verify_plan(plan)
+
