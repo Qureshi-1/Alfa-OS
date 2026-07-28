@@ -44,7 +44,7 @@ class AlfaTheme {
         foregroundColor: AlfaColors.text,
         titleTextStyle: TextStyle(fontSize: 16, fontWeight: FontWeight.w700, letterSpacing: 1.4),
       ),
-      cardTheme: CardTheme(
+      cardTheme: CardThemeData(
         color: AlfaColors.panel,
         elevation: 0,
         shape: RoundedRectangleBorder(
