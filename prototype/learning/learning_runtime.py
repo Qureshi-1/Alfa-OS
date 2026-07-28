@@ -191,6 +191,22 @@ class LearningRuntime:
     def get_preferred_action(self, available_actions: List[str]) -> Optional[str]:
         return self.policy_mem.get_best_action(available_actions)
 
+    def adapt_policy(self, context: Dict[str, Any], available_actions: List[str]) -> Dict[str, Any]:
+        """Adapt policy choices based on historical experience and rewards."""
+        best_action = self.get_preferred_action(available_actions)
+        return {
+            "recommended_action": best_action or (available_actions[0] if available_actions else None),
+            "adaptation_confidence": 0.9 if best_action else 0.5,
+        }
+
+    def integrate_with_runtimes(self, memory_mgr: Any = None, planner: Any = None, reasoner: Any = None, agent_runtime: Any = None) -> None:
+        """Bind learning engine callbacks into memory, planner, reasoner, and agent runtime."""
+        self._memory_mgr = memory_mgr
+        self._planner = planner
+        self._reasoner = reasoner
+        self._agent_runtime = agent_runtime
+        logger.info("LearningRuntime integrated with cognitive subsystems")
+
     def evaluate_skill(self, action: str) -> Dict[str, Any]:
         return self.skill_engine.evaluate_skill_progress(action, self.buffer.buffer)
 
@@ -199,4 +215,5 @@ class LearningRuntime:
             "buffer_experiences": len(self.buffer),
             "loaded": self._loaded,
         }
+
 

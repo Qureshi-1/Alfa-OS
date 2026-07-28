@@ -34,11 +34,16 @@ class ToolManager:
             CalculatorTool,
             DateTimeTool,
             SystemInfoTool,
+            DesktopControlTool,
+            AndroidInteractionTool,
         )
 
         self.register(CalculatorTool())
         self.register(DateTimeTool())
         self.register(SystemInfoTool())
+        self.register(DesktopControlTool())
+        self.register(AndroidInteractionTool())
+
 
         self._loaded = True
         logger.info(

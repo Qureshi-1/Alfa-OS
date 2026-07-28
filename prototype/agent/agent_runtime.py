@@ -150,6 +150,56 @@ class AgentRuntime:
 
         return plan
 
+    def execute_plan_with_retry_and_self_correction(
+        self, plan: Plan, agent_id: str, max_retries: int = 2
+    ) -> tuple:
+        """Planner -> Executor -> Reflection loop with retry system, failure recovery, and self-correction."""
+        for step in plan.steps:
+            retries = 0
+            while retries <= max_retries:
+                step.status = "running"
+                if step.tool_name:
+                    result = self.tool_executor.execute_plan_step(
+                        step.tool_name, step.arguments, agent_id,
+                    )
+                    if result.success:
+                        step.status = "completed"
+                        step.result = AgentResult(
+                            agent_id=agent_id,
+                            task_id=plan.plan_id,
+                            status=AgentStatus.COMPLETED,
+                            output=result.result,
+                        )
+                        break
+                    else:
+                        retries += 1
+                        if retries > max_retries:
+                            step.status = "failed"
+                            step.result = AgentResult(
+                                agent_id=agent_id,
+                                task_id=plan.plan_id,
+                                status=AgentStatus.FAILED,
+                                error=result.error,
+                            )
+                else:
+                    agent_result = self.run_agent(agent_id, step.description, step.arguments)
+                    if agent_result.success:
+                        step.status = "completed"
+                        step.result = agent_result
+                        break
+                    else:
+                        retries += 1
+                        if retries > max_retries:
+                            step.status = "failed"
+                            step.result = agent_result
+
+        last_result = plan.steps[-1].result if (plan.steps and plan.steps[-1].result) else AgentResult(
+            agent_id=agent_id, task_id=plan.plan_id, status=AgentStatus.COMPLETED
+        )
+        reflection = self.reflect(last_result, plan)
+        return plan, reflection
+
+
     def reflect(self, result: AgentResult,
                 plan: Optional[Plan] = None) -> ReflectionRecord:
         """Reflect on an agent's execution."""
