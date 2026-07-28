@@ -8,6 +8,8 @@ from .driver_layer import (
     BaseCognitiveDriver,
     MemoryDriver,
     InferenceDriver,
+    StorageDriver,
+    DriverManager,
 )
 
 __all__ = [
@@ -19,4 +21,7 @@ __all__ = [
     "BaseCognitiveDriver",
     "MemoryDriver",
     "InferenceDriver",
+    "StorageDriver",
+    "DriverManager",
 ]
+

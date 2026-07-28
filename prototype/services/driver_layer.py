@@ -86,6 +86,26 @@ class InferenceDriver(BaseCognitiveDriver):
         }
 
 
+class StorageDriver(BaseCognitiveDriver):
+    """Driver module for persistent storage operations."""
+
+    @property
+    def driver_name(self) -> str:
+        return "storage_driver"
+
+    @property
+    def capabilities(self) -> List[str]:
+        return ["storage_read", "storage_write", "storage_delete"]
+
+    def execute(self, capability: str, parameters: Dict[str, Any]) -> Dict[str, Any]:
+        return {
+            "driver": self.driver_name,
+            "capability": capability,
+            "success": True,
+            "result": f"Storage driver executed {capability}",
+        }
+
+
 class CognitiveDriverRegistry:
     """Capability registry for registering and querying cognitive drivers."""
 
@@ -126,12 +146,23 @@ class CognitiveDriverAPI:
         return driver.execute(capability, params)
 
 
+class DriverManager:
+    """Manages driver discovery, lifecycle, and plugin registration."""
+
+    def __init__(self, registry: CognitiveDriverRegistry) -> None:
+        self.registry = registry
+
+    def load_driver(self, driver: BaseCognitiveDriver) -> None:
+        self.registry.register_driver(driver)
+
+
 class CognitiveDriverPluginRuntime:
     """Composition Root for Milestone 8 Driver Layer."""
 
     def __init__(self, event_bus: Optional[EventBus] = None) -> None:
         self._event_bus = event_bus or EventBus()
         self.registry = CognitiveDriverRegistry()
+        self.driver_manager = DriverManager(self.registry)
         self.api = CognitiveDriverAPI(self.registry)
         self._loaded = False
 
@@ -139,10 +170,12 @@ class CognitiveDriverPluginRuntime:
         if self._loaded:
             return
         # Register built-in drivers
-        self.registry.register_driver(MemoryDriver())
-        self.registry.register_driver(InferenceDriver())
+        self.driver_manager.load_driver(MemoryDriver())
+        self.driver_manager.load_driver(InferenceDriver())
+        self.driver_manager.load_driver(StorageDriver())
         self._loaded = True
         logger.info("CognitiveDriverPluginRuntime loaded")
+
 
     def is_loaded(self) -> bool:
         return self._loaded
