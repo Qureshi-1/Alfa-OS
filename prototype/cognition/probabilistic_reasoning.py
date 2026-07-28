@@ -150,3 +150,8 @@ class ProbabilisticReasoningEngine:
             "uncertainty": metrics.__dict__,
             "propagated_confidence": propagated_conf,
         }
+
+    def rank_hypotheses(self, hypotheses: List[Hypothesis]) -> List[Hypothesis]:
+        """Rank a list of hypotheses by posterior probability."""
+        return sorted(hypotheses, key=lambda h: h.posterior_probability, reverse=True)
+
