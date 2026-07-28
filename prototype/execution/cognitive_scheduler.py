@@ -200,6 +200,17 @@ class CognitiveScheduler:
         ))
         return task
 
+    def time_slice(self, time_budget_ms: float = 100.0) -> List[ScheduledTask]:
+        """Execute task steps within a given cognitive time slice budget."""
+        start = time.time()
+        executed: List[ScheduledTask] = []
+        while (time.time() - start) * 1000.0 < time_budget_ms:
+            t = self.step_execution()
+            if not t:
+                break
+            executed.append(t)
+        return executed
+
     def get_stats(self) -> Dict[str, Any]:
         return {
             "queued_tasks": len(self.queue),
@@ -207,3 +218,22 @@ class CognitiveScheduler:
             "resources": self.resource_manager.get_utilization(),
             "focused_goal": self.attention_allocator.get_focused_goal(),
         }
+
+
+class BackgroundTaskScheduler:
+    """Scheduler for low-priority asynchronous background tasks."""
+
+    def __init__(self, scheduler: CognitiveScheduler) -> None:
+        self.scheduler = scheduler
+        self.background_tasks: List[ScheduledTask] = []
+
+    def schedule_background(self, name: str, goal: str, payload: Optional[Dict[str, Any]] = None) -> ScheduledTask:
+        task = self.scheduler.submit_task(
+            name=name,
+            goal=goal,
+            priority=TaskPriority.BACKGROUND,
+            payload=payload,
+        )
+        self.background_tasks.append(task)
+        return task
+
