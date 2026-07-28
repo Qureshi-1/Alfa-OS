@@ -138,6 +138,22 @@ class RLLearningLoop:
         return exp
 
 
+class SkillImprovementEngine:
+    """Monitors reflection and experience metrics to improve skill efficiency."""
+
+    def evaluate_skill_progress(self, action: str, history: List[ExperienceTuple]) -> Dict[str, Any]:
+        action_exps = [e for e in history if e.action == action]
+        if not action_exps:
+            return {"action": action, "avg_reward": 0.0, "status": "untested"}
+        avg_r = sum(e.reward for e in action_exps) / len(action_exps)
+        return {
+            "action": action,
+            "count": len(action_exps),
+            "avg_reward": round(avg_r, 4),
+            "status": "proficient" if avg_r > 0.5 else "improving",
+        }
+
+
 class LearningRuntime:
     """Composition Root for Milestone 6 Learning Runtime."""
 
@@ -147,6 +163,7 @@ class LearningRuntime:
         self.reward_eval = RewardEvaluator()
         self.policy_mem = SelfImprovementMemory(db_path=db_path)
         self.rl_loop = RLLearningLoop(self.buffer, self.reward_eval, self.policy_mem)
+        self.skill_engine = SkillImprovementEngine()
         self._loaded = False
 
     def load(self) -> None:
@@ -174,8 +191,12 @@ class LearningRuntime:
     def get_preferred_action(self, available_actions: List[str]) -> Optional[str]:
         return self.policy_mem.get_best_action(available_actions)
 
+    def evaluate_skill(self, action: str) -> Dict[str, Any]:
+        return self.skill_engine.evaluate_skill_progress(action, self.buffer.buffer)
+
     def get_stats(self) -> Dict[str, Any]:
         return {
             "buffer_experiences": len(self.buffer),
             "loaded": self._loaded,
         }
+
