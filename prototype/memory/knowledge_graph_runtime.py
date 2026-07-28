@@ -180,3 +180,29 @@ class KnowledgeGraphRuntime:
             "path_count": len(paths),
             "paths": paths,
         }
+
+    def link_entity(self, text: str) -> List[GraphEntity]:
+        """Extract and link recognized entities from raw text."""
+        cursor = self.store._conn.cursor()
+        cursor.execute("SELECT entity_id, name, entity_type, properties, created_at FROM entities")
+        rows = cursor.fetchall()
+        linked: List[GraphEntity] = []
+        text_lower = text.lower()
+        for r in rows:
+            if r[1].lower() in text_lower:
+                linked.append(GraphEntity(entity_id=r[0], name=r[1], entity_type=r[2], properties=json.loads(r[3]), created_at=r[4]))
+        return linked
+
+    def query_knowledge(self, query_str: str) -> List[Dict[str, Any]]:
+        """Query knowledge graph by keyword search across entity names and relation types."""
+        linked = self.link_entity(query_str)
+        results = []
+        for e in linked:
+            rels = self.store.get_outgoing_relations(e.entity_id)
+            results.append({
+                "entity": e.name,
+                "type": e.entity_type,
+                "relations_count": len(rels),
+            })
+        return results
+
