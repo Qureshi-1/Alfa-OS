@@ -5,34 +5,35 @@ from dataclasses import dataclass
 
 @dataclass(frozen=True)
 class Colors:
-    """Color palette — Cyber Blue dark glass theme."""
+    """Color palette — Dark Graphite Futuristic AI OS Theme."""
     # Backgrounds
-    BG_PRIMARY = "#0a0e17"
-    BG_SECONDARY = "#111827"
-    BG_TERTIARY = "#1a2236"
-    BG_SURFACE = "#1e293b"
-    BG_ELEVATED = "#243049"
-    BG_HOVER = "#2a3a52"
-    BG_ACTIVE = "#334766"
-    BG_INPUT = "#0f172a"
+    BG_PRIMARY = "#090c10"
+    BG_SECONDARY = "#0d1117"
+    BG_TERTIARY = "#131722"
+    BG_SURFACE = "#161b26"
+    BG_ELEVATED = "#1e2433"
+    BG_HOVER = "#252d3f"
+    BG_ACTIVE = "#2d374d"
+    BG_INPUT = "#0d1117"
 
-    # Glass
-    GLASS_BG = "rgba(14, 22, 40, 0.85)"
-    GLASS_BORDER = "rgba(56, 128, 255, 0.12)"
-    GLASS_HOVER = "rgba(56, 128, 255, 0.08)"
+    # Glass & Cards
+    GLASS_BG = "#161b26"
+    GLASS_BORDER = "rgba(0, 229, 255, 0.14)"
+    GLASS_HOVER = "rgba(0, 229, 255, 0.08)"
 
-    # Accent
-    ACCENT_PRIMARY = "#3b82f6"
-    ACCENT_SECONDARY = "#60a5fa"
-    ACCENT_TERTIARY = "#2563eb"
-    ACCENT_GLOW = "rgba(59, 130, 246, 0.25)"
-    ACCENT_SUBTLE = "rgba(59, 130, 246, 0.10)"
+    # Accents
+    ACCENT_CYAN = "#00e5ff"
+    ACCENT_PRIMARY = "#00e5ff"
+    ACCENT_SECONDARY = "#3b82f6"
+    ACCENT_PURPLE = "#a855f7"
+    ACCENT_GLOW = "rgba(0, 229, 255, 0.20)"
+    ACCENT_SUBTLE = "rgba(0, 229, 255, 0.08)"
 
     # Text
-    TEXT_PRIMARY = "#f1f5f9"
-    TEXT_SECONDARY = "#94a3b8"
-    TEXT_MUTED = "#64748b"
-    TEXT_ACCENT = "#60a5fa"
+    TEXT_PRIMARY = "#f3f4f6"
+    TEXT_SECONDARY = "#9ca3af"
+    TEXT_MUTED = "#6b7280"
+    TEXT_ACCENT = "#00e5ff"
     TEXT_DANGER = "#f87171"
     TEXT_SUCCESS = "#34d399"
     TEXT_WARNING = "#fbbf24"
@@ -40,28 +41,28 @@ class Colors:
     # Semantic
     DANGER = "#ef4444"
     DANGER_BG = "rgba(239, 68, 68, 0.12)"
-    SUCCESS = "#22c55e"
-    SUCCESS_BG = "rgba(34, 197, 94, 0.12)"
+    SUCCESS = "#10b981"
+    SUCCESS_BG = "rgba(16, 185, 129, 0.12)"
     WARNING = "#f59e0b"
     WARNING_BG = "rgba(245, 158, 11, 0.12)"
     INFO = "#3b82f6"
     INFO_BG = "rgba(59, 130, 246, 0.12)"
 
     # Borders
-    BORDER_PRIMARY = "rgba(56, 128, 255, 0.15)"
-    BORDER_SECONDARY = "rgba(148, 163, 184, 0.10)"
-    BORDER_FOCUS = "rgba(59, 130, 246, 0.50)"
+    BORDER_PRIMARY = "rgba(0, 229, 255, 0.22)"
+    BORDER_SECONDARY = "rgba(255, 255, 255, 0.08)"
+    BORDER_FOCUS = "rgba(0, 229, 255, 0.60)"
 
     # Shadows
-    SHADOW_SM = "0 1px 2px rgba(0, 0, 0, 0.3)"
-    SHADOW_MD = "0 4px 12px rgba(0, 0, 0, 0.4)"
-    SHADOW_LG = "0 8px 32px rgba(0, 0, 0, 0.5)"
+    SHADOW_SM = "0 1px 3px rgba(0, 0, 0, 0.4)"
+    SHADOW_MD = "0 4px 14px rgba(0, 0, 0, 0.5)"
+    SHADOW_LG = "0 8px 32px rgba(0, 0, 0, 0.6)"
 
 
 @dataclass(frozen=True)
 class Typography:
     """Font families and sizes."""
-    FONT_FAMILY = "'Segoe UI', 'SF Pro Display', -apple-system, sans-serif"
+    FONT_FAMILY = "'Inter', 'SF Pro Display', 'Segoe UI', -apple-system, sans-serif"
     FONT_MONO = "'Cascadia Code', 'JetBrains Mono', 'Fira Code', 'Consolas', monospace"
 
     # Sizes
@@ -72,7 +73,7 @@ class Typography:
     SIZE_LG = "14px"
     SIZE_XL = "16px"
     SIZE_2XL = "20px"
-    SIZE_3XL = "28px"
+    SIZE_3XL = "26px"
 
     # Weights
     WEIGHT_NORMAL = "400"
@@ -95,23 +96,23 @@ class Spacing:
 
 @dataclass(frozen=True)
 class Radii:
-    """Border radii."""
+    """Border radii scale — 12px cards."""
     SM = "4px"
-    MD = "6px"
-    LG = "8px"
-    XL = "12px"
+    MD = "8px"
+    LG = "12px"
+    XL = "16px"
     FULL = "9999px"
 
 
 @dataclass(frozen=True)
 class Sizes:
     """Component sizes."""
-    SIDEBAR_WIDTH = "52px"
+    SIDEBAR_WIDTH = "60px"
     SIDEBAR_EXPANDED = "200px"
     STATUS_BAR_HEIGHT = "28px"
-    TOP_BAR_HEIGHT = "40px"
-    INPUT_HEIGHT = "32px"
-    BUTTON_HEIGHT = "28px"
+    TOP_BAR_HEIGHT = "42px"
+    INPUT_HEIGHT = "34px"
+    BUTTON_HEIGHT = "30px"
     ICON_SM = "14px"
     ICON_MD = "18px"
     ICON_LG = "24px"
@@ -123,3 +124,4 @@ typography = Typography()
 spacing = Spacing()
 radii = Radii()
 sizes = Sizes()
+

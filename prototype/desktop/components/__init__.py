@@ -10,9 +10,12 @@ from .info_row import InfoRow
 from .empty_state import EmptyState
 from .loading_state import LoadingState
 from .badge import Badge
+from .chart_widget import MiniGaugeWidget, ExecutionGraphWidget
 
 __all__ = [
     "BaseView", "StatusIndicator", "StatusDot", "MetricCard",
     "SectionHeader", "DataTable", "IconButton", "InfoRow",
     "EmptyState", "LoadingState", "Badge",
+    "MiniGaugeWidget", "ExecutionGraphWidget",
 ]
+

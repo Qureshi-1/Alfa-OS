@@ -8,8 +8,18 @@ from .agents import AgentWorkspaceView
 from .workers import WorkersView
 from .settings import SettingsView
 from .notifications import NotificationsView
+from .planner import PlannerView
+from .tasks import TasksView
+from .knowledge import KnowledgeView
+from .runtime import RuntimeView
+from .tools import ToolsView
+from .files import FilesView
+from .plugins import PluginsView
 
 __all__ = [
     "DashboardView", "ChatView", "ModelHubView", "MemoryView",
     "AgentWorkspaceView", "WorkersView", "SettingsView", "NotificationsView",
+    "PlannerView", "TasksView", "KnowledgeView", "RuntimeView",
+    "ToolsView", "FilesView", "PluginsView",
 ]
+

@@ -28,10 +28,10 @@ class TestDesktopApplication(unittest.TestCase):
         self.assertIn("ALFA COS", self.window.windowTitle())
 
     def test_workspace_count(self):
-        self.assertEqual(self.window.workspace_stack.count(), 8)
+        self.assertEqual(self.window.workspace_stack.count(), 14)
 
     def test_sidebar_items(self):
-        self.assertEqual(len(self.window.sidebar._buttons), 8)
+        self.assertEqual(len(self.window.sidebar._buttons), 14)
 
     def test_stylesheet_applied(self):
         self.assertGreater(len(self.window.styleSheet()), 1000)
@@ -39,6 +39,8 @@ class TestDesktopApplication(unittest.TestCase):
     def test_switch_workspace(self):
         self.window.switch_workspace("chat")
         self.assertEqual(self.window.sidebar.get_active(), "chat")
+        self.window.switch_workspace("planner")
+        self.assertEqual(self.window.sidebar.get_active(), "planner")
 
     def test_top_bar_refresh(self):
         self.window.top_bar.refresh()
@@ -67,8 +69,32 @@ class TestDesktopApplication(unittest.TestCase):
         ws = self.window._workspaces["agents"]
         ws.refresh()
 
-    def test_workers_workspace_refresh(self):
-        ws = self.window._workspaces["workers"]
+    def test_planner_workspace_refresh(self):
+        ws = self.window._workspaces["planner"]
+        ws.refresh()
+
+    def test_tasks_workspace_refresh(self):
+        ws = self.window._workspaces["tasks"]
+        ws.refresh()
+
+    def test_knowledge_workspace_refresh(self):
+        ws = self.window._workspaces["knowledge"]
+        ws.refresh()
+
+    def test_runtime_workspace_refresh(self):
+        ws = self.window._workspaces["runtime"]
+        ws.refresh()
+
+    def test_tools_workspace_refresh(self):
+        ws = self.window._workspaces["tools"]
+        ws.refresh()
+
+    def test_files_workspace_refresh(self):
+        ws = self.window._workspaces["files"]
+        ws.refresh()
+
+    def test_plugins_workspace_refresh(self):
+        ws = self.window._workspaces["plugins"]
         ws.refresh()
 
     def test_settings_workspace_refresh(self):
@@ -86,3 +112,4 @@ class TestDesktopApplication(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+

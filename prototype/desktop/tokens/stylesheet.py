@@ -7,7 +7,7 @@ def build_stylesheet() -> str:
     """Return the complete application stylesheet."""
     return f"""
     /* ═══════════════════════════════════════════════════════════════════
-       ALFA COS — Cyber Blue Dark Glass Theme
+       ALFA COS — Dark Graphite Glass OS Theme v1.2
        ═══════════════════════════════════════════════════════════════════ */
 
     * {{
@@ -36,12 +36,12 @@ def build_stylesheet() -> str:
         background-color: transparent;
         border: none;
         border-radius: {radii.MD};
-        padding: {spacing.MD};
-        min-width: 36px;
-        max-width: 36px;
-        min-height: 36px;
-        max-height: 36px;
+        padding: 6px 10px;
+        min-height: 34px;
         color: {colors.TEXT_SECONDARY};
+        font-size: {typography.SIZE_SM};
+        font-weight: {typography.WEIGHT_MEDIUM};
+        text-align: left;
     }}
 
     QWidget#sidebar QPushButton:hover {{
@@ -51,8 +51,9 @@ def build_stylesheet() -> str:
 
     QWidget#sidebar QPushButton[active="true"] {{
         background-color: {colors.ACCENT_SUBTLE};
-        color: {colors.ACCENT_SECONDARY};
-        border-left: 2px solid {colors.ACCENT_PRIMARY};
+        color: {colors.ACCENT_CYAN};
+        border-left: 3px solid {colors.ACCENT_CYAN};
+        font-weight: {typography.WEIGHT_SEMIBOLD};
     }}
 
     /* ── Top Status Bar ───────────────────────────────────────────── */
@@ -176,13 +177,14 @@ def build_stylesheet() -> str:
     }}
 
     QPushButton#primary {{
-        background-color: {colors.ACCENT_PRIMARY};
-        border-color: {colors.ACCENT_PRIMARY};
-        color: white;
+        background-color: {colors.ACCENT_CYAN};
+        border-color: {colors.ACCENT_CYAN};
+        color: {colors.BG_PRIMARY};
+        font-weight: {typography.WEIGHT_SEMIBOLD};
     }}
 
     QPushButton#primary:hover {{
-        background-color: {colors.ACCENT_SECONDARY};
+        background-color: #33ebff;
     }}
 
     QPushButton#danger {{
@@ -214,7 +216,8 @@ def build_stylesheet() -> str:
         padding: {spacing.MD} {spacing.LG};
         min-height: {sizes.INPUT_HEIGHT};
         color: {colors.TEXT_PRIMARY};
-        selection-background-color: {colors.ACCENT_PRIMARY};
+        selection-background-color: {colors.ACCENT_CYAN};
+        selection-color: {colors.BG_PRIMARY};
     }}
 
     QLineEdit:focus, QSpinBox:focus, QDoubleSpinBox:focus {{
@@ -232,7 +235,8 @@ def build_stylesheet() -> str:
         border-radius: {radii.MD};
         padding: {spacing.MD};
         color: {colors.TEXT_PRIMARY};
-        selection-background-color: {colors.ACCENT_PRIMARY};
+        selection-background-color: {colors.ACCENT_CYAN};
+        selection-color: {colors.BG_PRIMARY};
     }}
 
     QTextEdit:focus {{
@@ -276,8 +280,8 @@ def build_stylesheet() -> str:
         outline: none;
     }}
 
-    /* ── Tables ───────────────────────────────────────────────────── */
-    QTableWidget {{
+    /* ── Tables & Trees ───────────────────────────────────────────── */
+    QTableWidget, QTreeWidget {{
         background-color: {colors.BG_INPUT};
         border: 1px solid {colors.BORDER_SECONDARY};
         border-radius: {radii.MD};
@@ -287,16 +291,17 @@ def build_stylesheet() -> str:
         outline: none;
     }}
 
-    QTableWidget::item {{
+    QTableWidget::item, QTreeWidget::item {{
         padding: {spacing.MD};
         border-bottom: 1px solid {colors.BORDER_SECONDARY};
     }}
 
-    QTableWidget::item:selected {{
+    QTableWidget::item:selected, QTreeWidget::item:selected {{
         background-color: {colors.ACCENT_SUBTLE};
+        color: {colors.ACCENT_CYAN};
     }}
 
-    QTableWidget::item:hover {{
+    QTableWidget::item:hover, QTreeWidget::item:hover {{
         background-color: {colors.BG_HOVER};
     }}
 
@@ -367,8 +372,30 @@ def build_stylesheet() -> str:
 
     /* ── Tab Widget ───────────────────────────────────────────────── */
     QTabWidget::pane {{
-        border: none;
-        background-color: transparent;
+        border: 1px solid {colors.BORDER_SECONDARY};
+        border-radius: {radii.LG};
+        background-color: {colors.BG_SURFACE};
+    }}
+
+    QTabBar::tab {{
+        background-color: {colors.BG_TERTIARY};
+        color: {colors.TEXT_SECONDARY};
+        padding: {spacing.MD} {spacing.XL};
+        border-top-left-radius: {radii.MD};
+        border-top-right-radius: {radii.MD};
+        margin-right: 2px;
+    }}
+
+    QTabBar::tab:selected {{
+        background-color: {colors.BG_SURFACE};
+        color: {colors.ACCENT_CYAN};
+        font-weight: {typography.WEIGHT_SEMIBOLD};
+        border-bottom: 2px solid {colors.ACCENT_CYAN};
+    }}
+
+    QTabBar::tab:hover:!selected {{
+        background-color: {colors.BG_HOVER};
+        color: {colors.TEXT_PRIMARY};
     }}
 
     /* ── Splitter ─────────────────────────────────────────────────── */
@@ -379,7 +406,7 @@ def build_stylesheet() -> str:
     }}
 
     QSplitter::handle:hover {{
-        background-color: {colors.ACCENT_PRIMARY};
+        background-color: {colors.ACCENT_CYAN};
     }}
 
     /* ── Progress Bar ─────────────────────────────────────────────── */
@@ -387,13 +414,13 @@ def build_stylesheet() -> str:
         background-color: {colors.BG_TERTIARY};
         border: none;
         border-radius: {radii.SM};
-        height: 4px;
+        height: 6px;
         text-align: center;
         color: transparent;
     }}
 
     QProgressBar::chunk {{
-        background-color: {colors.ACCENT_PRIMARY};
+        background-color: {colors.ACCENT_CYAN};
         border-radius: {radii.SM};
     }}
 
@@ -422,6 +449,7 @@ def build_stylesheet() -> str:
 
     QMenu::item:selected {{
         background-color: {colors.ACCENT_SUBTLE};
+        color: {colors.ACCENT_CYAN};
     }}
 
     /* ── Status Dot ───────────────────────────────────────────────── */
@@ -448,7 +476,7 @@ def build_stylesheet() -> str:
     /* ── Badge ────────────────────────────────────────────────────── */
     QLabel#badge {{
         background-color: {colors.ACCENT_SUBTLE};
-        color: {colors.ACCENT_SECONDARY};
+        color: {colors.ACCENT_CYAN};
         border-radius: {radii.FULL};
         padding: {spacing.XS} {spacing.MD};
         font-size: {typography.SIZE_XS};
@@ -512,3 +540,4 @@ def build_stylesheet() -> str:
         border-color: {colors.BORDER_PRIMARY};
     }}
     """
+

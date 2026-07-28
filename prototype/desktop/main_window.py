@@ -12,6 +12,8 @@ from prototype.desktop.layouts.os_shell import OSShell
 from prototype.desktop.workspaces import (
     DashboardView, ChatView, ModelHubView, MemoryView,
     AgentWorkspaceView, WorkersView, SettingsView, NotificationsView,
+    PlannerView, TasksView, KnowledgeView, RuntimeView,
+    ToolsView, FilesView, PluginsView,
 )
 
 logger = logging.getLogger("alfa.desktop")
@@ -20,7 +22,7 @@ logger = logging.getLogger("alfa.desktop")
 class AlfaDesktopWindow(OSShell):
     """Main desktop window using the OS shell layout.
 
-    Registers all workspaces and manages lifecycle.
+    Registers all 13 AI Operating System workspaces and manages lifecycle.
     """
 
     def __init__(self, runtime: AlfaRuntime, parent=None):
@@ -29,18 +31,25 @@ class AlfaDesktopWindow(OSShell):
         # Apply theme
         self.setStyleSheet(build_stylesheet())
 
-        # Register workspaces
+        # Register standard 13 AI OS workspace modules
         self.register_workspace("dashboard", DashboardView(runtime))
         self.register_workspace("chat", ChatView(runtime))
-        self.register_workspace("model_hub", ModelHubView(runtime))
         self.register_workspace("memory", MemoryView(runtime))
+        self.register_workspace("planner", PlannerView(runtime))
+        self.register_workspace("tasks", TasksView(runtime))
+        self.register_workspace("knowledge", KnowledgeView(runtime))
+        self.register_workspace("runtime", RuntimeView(runtime))
+        self.register_workspace("model_hub", ModelHubView(runtime))
         self.register_workspace("agents", AgentWorkspaceView(runtime))
-        self.register_workspace("workers", WorkersView(runtime))
+        self.register_workspace("tools", ToolsView(runtime))
+        self.register_workspace("files", FilesView(runtime))
+        self.register_workspace("plugins", PluginsView(runtime))
         self.register_workspace("settings", SettingsView(runtime))
         self.register_workspace("notifications", NotificationsView(runtime))
 
         # Start on dashboard
         self.switch_workspace("dashboard")
+
 
         # Auto-refresh timer
         self._refresh_timer = QTimer(self)

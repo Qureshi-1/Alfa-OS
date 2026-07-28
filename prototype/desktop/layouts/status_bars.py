@@ -1,50 +1,80 @@
 """Status Bars — top and bottom bars for system information."""
 
-from PySide6.QtWidgets import QWidget, QHBoxLayout, QLabel, QSizePolicy
-from PySide6.QtCore import Qt, QTimer
+from PySide6.QtWidgets import QWidget, QHBoxLayout, QLabel, QLineEdit, QFrame
+from PySide6.QtCore import Qt
 
-from prototype.desktop.tokens import colors, typography, spacing
+from prototype.desktop.tokens import colors, typography, spacing, radii
 
 
 class TopBar(QWidget):
-    """Top status bar — provider, model, system status."""
+    """Top status bar — branding, global command palette trigger, provider & status."""
 
     def __init__(self, runtime=None, parent=None):
         super().__init__(parent)
         self.setObjectName("topBar")
-        self.setFixedHeight(40)
+        self.setFixedHeight(42)
         self._runtime = runtime
 
         layout = QHBoxLayout(self)
         layout.setContentsMargins(12, 0, 12, 0)
-        layout.setSpacing(16)
+        layout.setSpacing(12)
 
-        # Left: app title
-        self._title = QLabel("ALFA COS")
-        self._title.setStyleSheet(f"color: {colors.TEXT_ACCENT}; font-weight: 700; font-size: 12px; letter-spacing: 1px;")
-        layout.addWidget(self._title)
+        # Left: logo badge
+        self._brand = QLabel(" ALFA COS ")
+        self._brand.setObjectName("badge")
+        self._brand.setStyleSheet(f"""
+            background-color: {colors.ACCENT_SUBTLE};
+            color: {colors.ACCENT_CYAN};
+            font-weight: 700;
+            font-size: 11px;
+            letter-spacing: 1.5px;
+            border-radius: 6px;
+            padding: 3px 8px;
+        """)
+        layout.addWidget(self._brand)
 
-        layout.addSpacing(24)
+        ver = QLabel("v1.2")
+        ver.setStyleSheet(f"color: {colors.TEXT_MUTED}; font-size: 10px; font-weight: 600;")
+        layout.addWidget(ver)
 
-        # Provider indicator
-        self._provider = QLabel("")
-        self._provider.setObjectName("caption")
-        layout.addWidget(self._provider)
+        layout.addSpacing(12)
 
-        # Model indicator
-        self._model = QLabel("")
-        self._model.setObjectName("caption")
-        layout.addWidget(self._model)
+        # Quick Command / Search field
+        self._search_input = QLineEdit()
+        self._search_input.setPlaceholderText(" Search workspace, commands & memory... (Ctrl+K)")
+        self._search_input.setFixedWidth(280)
+        self._search_input.setFixedHeight(28)
+        self._search_input.setStyleSheet(f"""
+            background-color: {colors.BG_TERTIARY};
+            border: 1px solid {colors.BORDER_SECONDARY};
+            border-radius: 6px;
+            color: {colors.TEXT_PRIMARY};
+            font-size: 11px;
+            padding-left: 8px;
+        """)
+        layout.addWidget(self._search_input)
 
         layout.addStretch()
 
-        # Right: system indicators
-        self._uptime = QLabel("")
-        self._uptime.setObjectName("caption")
-        layout.addWidget(self._uptime)
+        # Provider & Model indicators
+        self._provider = QLabel("Provider: Ready")
+        self._provider.setStyleSheet(f"color: {colors.TEXT_SECONDARY}; font-size: 11px;")
+        layout.addWidget(self._provider)
 
-        self._status = QLabel("\u25CF")
-        self._status.setStyleSheet(f"color: {colors.SUCCESS}; font-size: 10px;")
+        sep = QFrame()
+        sep.setObjectName("separatorV")
+        sep.setFixedHeight(14)
+        layout.addWidget(sep)
+
+        self._model = QLabel("Model: Standard")
+        self._model.setStyleSheet(f"color: {colors.TEXT_MUTED}; font-size: 11px;")
+        layout.addWidget(self._model)
+
+        layout.addSpacing(8)
+
+        # Status dot
+        self._status = QLabel("\u25CF Online")
+        self._status.setStyleSheet(f"color: {colors.SUCCESS}; font-size: 11px; font-weight: 500;")
         layout.addWidget(self._status)
 
     def refresh(self) -> None:
@@ -52,21 +82,16 @@ class TopBar(QWidget):
             return
         try:
             settings = self._runtime._settings
-            provider = settings.get_provider()
-            model = settings.get_model()
+            provider = settings.get_provider() if hasattr(settings, "get_provider") else "Default"
+            model = settings.get_model() if hasattr(settings, "get_model") else "Standard"
             self._provider.setText(f"Provider: {provider}")
-            self._model.setText(f"Model: {model}")
-
-            stats = self._runtime.get_stats()
-            exec_stats = stats.get("executive", {})
-            total = exec_stats.get("total_executions", 0)
-            self._uptime.setText(f"Executions: {total}")
+            self._model.setText(f"Model: {model[:20]}")
         except Exception:
             pass
 
 
 class BottomBar(QWidget):
-    """Bottom status bar — memory, workers, agent count."""
+    """Bottom status bar — connection, provider, execution status, background tasks, version."""
 
     def __init__(self, runtime=None, parent=None):
         super().__init__(parent)
@@ -76,47 +101,55 @@ class BottomBar(QWidget):
 
         layout = QHBoxLayout(self)
         layout.setContentsMargins(12, 0, 12, 0)
-        layout.setSpacing(16)
+        layout.setSpacing(14)
 
-        self._memory_label = QLabel("Memory: 0")
-        self._memory_label.setObjectName("caption")
-        layout.addWidget(self._memory_label)
+        # Connection status
+        self._conn_label = QLabel("\u25CF Connected")
+        self._conn_label.setStyleSheet(f"color: {colors.SUCCESS}; font-size: 11px; font-weight: 500;")
+        layout.addWidget(self._conn_label)
 
-        self._workers_label = QLabel("Workers: 0")
-        self._workers_label.setObjectName("caption")
-        layout.addWidget(self._workers_label)
+        # Provider badge
+        self._provider_badge = QLabel("Provider: Gemini 3.6 Flash")
+        self._provider_badge.setStyleSheet(f"color: {colors.TEXT_SECONDARY}; font-size: 11px;")
+        layout.addWidget(self._provider_badge)
 
-        self._agents_label = QLabel("Agents: 0")
-        self._agents_label.setObjectName("caption")
-        layout.addWidget(self._agents_label)
+        # Execution Status
+        self._exec_status = QLabel("Engine: Idle")
+        self._exec_status.setStyleSheet(f"color: {colors.TEXT_MUTED}; font-size: 11px;")
+        layout.addWidget(self._exec_status)
 
         layout.addStretch()
 
-        self._plugins_label = QLabel("Plugins: 0")
-        self._plugins_label.setObjectName("caption")
-        layout.addWidget(self._plugins_label)
+        # Background Tasks
+        self._tasks_label = QLabel("Background Tasks: 0")
+        self._tasks_label.setStyleSheet(f"color: {colors.TEXT_MUTED}; font-size: 11px;")
+        layout.addWidget(self._tasks_label)
+
+        # Version tag
+        self._ver_label = QLabel("ALFA COS v1.2-dev")
+        self._ver_label.setStyleSheet(f"color: {colors.TEXT_ACCENT}; font-size: 10px; font-weight: 600;")
+        layout.addWidget(self._ver_label)
 
     def refresh(self) -> None:
         if not self._runtime:
             return
         try:
             stats = self._runtime.get_stats()
-            mem = stats.get("memory", {})
+            provider = stats.get("provider", "Ready")
             workers = stats.get("workers", {})
-            agents = stats.get("agents", {})
-            plugins = stats.get("plugins", [])
+            exec_stats = stats.get("executive", {})
 
-            working = mem.get("working_count", 0)
-            persistent = mem.get("persistent_count", 0)
-            self._memory_label.setText(f"Memory: {working} working / {persistent} persistent")
+            self._provider_badge.setText(f"Provider: {provider}")
+            running_tasks = workers.get("running", 0)
+            self._tasks_label.setText(f"Background Tasks: {running_tasks}")
 
-            worker_count = workers.get("worker_count", 0)
-            running = workers.get("running", 0)
-            self._workers_label.setText(f"Workers: {worker_count} ({running} running)")
-
-            agent_count = agents.get("agent_count", 0)
-            self._agents_label.setText(f"Agents: {agent_count}")
-
-            self._plugins_label.setText(f"Plugins: {len(plugins)}")
+            is_running = exec_stats.get("is_running", False)
+            if is_running:
+                self._exec_status.setText("Engine: Executing")
+                self._exec_status.setStyleSheet(f"color: {colors.ACCENT_CYAN}; font-size: 11px; font-weight: 600;")
+            else:
+                self._exec_status.setText("Engine: Ready")
+                self._exec_status.setStyleSheet(f"color: {colors.TEXT_MUTED}; font-size: 11px;")
         except Exception:
             pass
+
