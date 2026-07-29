@@ -138,8 +138,22 @@ class AlfaRuntime:
         # Diagnostics — health & metrics
         self.diagnostics = Diagnostics()
 
-        # Now wire diagnostics into cognition
-        self.cognition._diagnostics = self.diagnostics
+        # MissionRuntime — mission lifecycle & task graphs
+        from prototype.mission.mission_runtime import MissionRuntime
+        self.mission_runtime = MissionRuntime(
+            event_bus=self.event_bus,
+            memory_manager=self.memory_manager,
+            cognition_runtime=self.cognition,
+            worker_manager=self.worker_manager,
+            diagnostics=self.diagnostics,
+        )
+
+        # VoiceRuntime — speech, STT, TTS, wake word & streaming voice session
+        from prototype.voice.voice_runtime import VoiceRuntime
+        self.voice_runtime = VoiceRuntime(
+            event_bus=self.event_bus,
+            cognition_runtime=self.cognition,
+        )
 
         # Component list for lifecycle management (load/shutdown order)
         self._components = [
@@ -157,6 +171,8 @@ class AlfaRuntime:
             self.plugin_manager,
             self.worker_manager,
             self.kernel,
+            self.mission_runtime,
+            self.voice_runtime,
         ]
         self._loaded = False
 

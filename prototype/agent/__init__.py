@@ -19,6 +19,10 @@ from .advisor_orchestrator import (
     TierRole,
     SubtaskStatus,
 )
+from .specialized_agents import (
+    CodingAgent, PlanningAgent, ResearchAgent, BrowserAgent,
+    FileAgent, GitAgent, TerminalAgent, BuildAgent, DocsAgent,
+)
 from .agent_runtime import AgentRuntime
 
 __all__ = [
@@ -28,4 +32,6 @@ __all__ = [
     "MultiAgentCoordinator", "AgentRuntime",
     "AdvisorOrchestratorCoordinator", "AdvisorConsultation", "SubtaskBrief",
     "WorkerResult", "StatusBoardEntry", "ThreeTierTaskFrame", "TierRole", "SubtaskStatus",
+    "CodingAgent", "PlanningAgent", "ResearchAgent", "BrowserAgent",
+    "FileAgent", "GitAgent", "TerminalAgent", "BuildAgent", "DocsAgent",
 ]

@@ -41,6 +41,17 @@ class AgentRuntime:
         self._event_bus = event_bus
         self._loaded = False
 
+        # Register standard specialized agents
+        from prototype.agent.specialized_agents import (
+            CodingAgent, PlanningAgent, ResearchAgent, BrowserAgent,
+            FileAgent, GitAgent, TerminalAgent, BuildAgent, DocsAgent,
+        )
+        for agent_cls in [
+            CodingAgent, PlanningAgent, ResearchAgent, BrowserAgent,
+            FileAgent, GitAgent, TerminalAgent, BuildAgent, DocsAgent,
+        ]:
+            self.registry.register(agent_cls())
+
     def load(self) -> None:
         if self._loaded:
             return

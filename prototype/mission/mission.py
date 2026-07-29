@@ -59,6 +59,10 @@ class Mission:
     parent_id: Optional[str] = None
     metadata: Dict[str, Any] = field(default_factory=dict)
 
+    @property
+    def mission_id(self) -> str:
+        return self.id
+
     # ── Lifecycle operations ───────────────────────────────────────────────
 
     def activate(self) -> None:

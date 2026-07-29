@@ -154,6 +154,8 @@ class MissionRuntime:
             self._diagnostics.increment("mission.activation_count")
         return mission
 
+    start_mission = activate_mission
+
     def pause_mission(self, mission_id: str) -> Mission:
         mission = self._missions.get(mission_id)
         if not mission:
@@ -179,11 +181,13 @@ class MissionRuntime:
         })
         return mission
 
-    def complete_mission(self, mission_id: str) -> Mission:
+    def complete_mission(self, mission_id: str, outcome: Optional[str] = None) -> Mission:
         mission = self._missions.get(mission_id)
         if not mission:
             raise ValueError(f"Mission {mission_id} not found")
         mission.complete()
+        if outcome:
+            mission.metadata["outcome"] = outcome
         if self._active_mission_id == mission_id:
             self._active_mission_id = None
         self._progress.stop_tracking(mission_id)

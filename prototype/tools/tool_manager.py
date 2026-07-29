@@ -97,6 +97,17 @@ class ToolManager:
                 error=f"Tool unhealthy: {tool_name}",
             )
 
+        # Destructive action safety confirmation policy
+        destructive_actions = {"delete_file", "reset_hard", "publish_release", "send_deliverables", "drop_db"}
+        requested_action = str(arguments.get("action", "")).lower()
+        if (requested_action in destructive_actions or getattr(tool, "requires_confirmation", False)) and not arguments.get("confirmed", False):
+            logger.warning("Tool '%s' requested destructive action '%s' without explicit user confirmation", tool_name, requested_action)
+            return ToolResult(
+                status="confirmation_required",
+                error=f"User confirmation required before executing destructive action '{requested_action}'",
+                metadata={"confirmation_required": True, "action": requested_action, "tool": tool_name},
+            )
+
         if self._event_bus:
             self._event_bus.publish(Event(
                 event_type="ToolStarted",

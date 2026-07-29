@@ -160,6 +160,11 @@ class VoiceRuntime:
     def interrupt(self) -> None:
         self.session.interrupt()
 
+    def shutdown(self) -> None:
+        self.session.stop_session()
+        self._loaded = False
+        logger.info("VoiceRuntime shutdown")
+
     def get_stats(self) -> Dict[str, Any]:
         return {
             "loaded": self._loaded,
