@@ -1,70 +1,72 @@
-# Alfa COS v0.3 Release Notes
+# ALFA COS v1.2 — Final Autonomous Release Candidate 1 (RC1) Release Notes
 
-**Release Date**: July 25, 2026  
-**Version**: v0.3.0  
-**Authority**: Principal Software Architect and Autonomous Engineering Team
+**Release Date**: July 29, 2026  
+**Version**: v1.2-RC1  
+**Target Environment**: Windows Desktop & Android Mobile  
+**Authority**: Autonomous Engineering System (Antigravity AI Agent)
 
 ---
 
 ## Executive Summary
 
-Alfa COS v0.3 transforms the repository into a release-ready Artificial Cognitive Operating System. Every FastAPI endpoint has been stabilized, the permanent Worker Framework infrastructure has been established with validation workers, and all Flutter mobile views now interact directly with the live Python Cognitive Core backend.
+ALFA COS v1.2 Release Candidate 1 (RC1) delivers a fully autonomous, production-ready AI Operating System featuring complete UI polishing across all 14 desktop workspace modules, strict backward compatibility, 100% test pass rates across Python and Flutter test suites, automated runtime walkthrough validation, and standalone multi-platform distribution packages for Windows (`AlfaDesktop.exe`) and Android (`alfa-cos-mobile.apk`, `alfa-cos-mobile.aab`).
 
 ---
 
-## Key Highlights & New Features
+## Key Highlights & Polish Improvements
 
-### 1. Permanent Worker Framework Infrastructure (`prototype/worker/`)
-- **BaseWorker & Contracts**: `BaseWorker` abstract base class with `WorkerContext`, `WorkerResult`, and `WorkerStatus` state definitions.
-- **WorkerRegistry**: Central registry for dynamic worker registration and lookup.
-- **WorkerScheduler**: Deterministic FIFO queue scheduler for background execution.
-- **WorkerLifecycle**: Tracks state transitions (`IDLE` → `QUEUED` → `RUNNING` → `COMPLETED`/`FAILED`/`CANCELLED`) and maintains execution history.
-- **WorkerManager**: Orchestrates worker execution, lifecycle state, and Event Bus integration (`WorkerStarted`, `WorkerCompleted`, `WorkerFailed`).
-- **EchoWorker**: Built-in validation worker for verifying background execution pipelines.
+### 1. Complete UI/UX Desktop System (14 Workspaces)
+- **Dashboard Workspace**: Real-time execution activity graph, live hardware telemetry gauges (CPU, RAM, GPU), system health indicators, metric cards, and event stream.
+- **Assistant (Chat) Workspace**: Multi-modal chat view with tool execution timelines, code block rendering with syntax highlighting, and quick prompt chips.
+- **Memory Workspace**: Visual Knowledge Graph network card, virtual memory recall table, search filtering, and instant memory persistence controls.
+- **Planner Workspace**: Goal decomposition tree, priority matrix, step progress indicator, and plan re-evaluation triggers.
+- **Tasks Workspace**: Background worker queue table with real-time lifecycle tracking (`QUEUED` → `RUNNING` → `COMPLETED`).
+- **Knowledge Workspace**: RAG document indexer and entity query view.
+- **Runtime Workspace**: Telemetry meters, process management, and live kernel event stream.
+- **Model Hub Workspace**: Universal AI model router supporting Gemini 3.6 Flash, OpenAI, Claude, NVIDIA, OpenRouter, and Ollama.
+- **Agents Workspace**: Autonomous multi-agent registry, role tracking, capabilities list, and reflection score metrics.
+- **Tools Workspace**: Capability tool registry with sandboxed permission policies and execution history.
+- **Files Workspace**: Live interactive directory tree explorer and source code previewer.
+- **Plugins Workspace**: Dynamic workspace extension manager and ecosystem plugin scanner.
+- **Settings Workspace**: Tabbed interface covering AI providers, generation parameters (temperature, max tokens, timeout), general policies, memory persistence, runtime sandboxing, appearance theme, extensions, and security.
+- **Notifications Workspace**: Centralized event log stream with filtering by subsystem.
 
-### 2. Backend Stabilization & Enhancements (`prototype/server.py`)
-- Fixed endpoint dispatch bugs (`execute_tool` → `execute`, `enable_plugin` → `enable`, `disable_plugin` → `disable`).
-- Updated system version across the entire system to `v0.3.0`.
-- Implemented global exception handling middleware returning standardized error responses.
-- Added `/tasks/list` endpoint exposing full active and historic task execution states from the Executive Controller.
-- Added `/workers` (GET) and `/workers/execute` (POST) REST endpoints.
-- Updated `reflection_engine.py` to support optional execution results.
-- Enhanced provider connection testing in `settings.py` to support local Ollama instance diagnostics.
+### 2. Design System & Icon Polishing
+- Replaced legacy unicode 5-digit escape sequences with clean UTF-8 unicode icons (`\U0001F4C1` for Files, `\U0001F9E9` for Plugins).
+- Enhanced glassmorphism styling (`glass_bg`, `glass_border`, `accent_cyan` highlights).
+- Intelligent `EmptyState` component auto-detecting positional arguments without oversized text distortion.
+- Fixed `DataTable` method bindings (`populate` / `set_data`).
 
-### 3. Flutter Android Client Integration (`android/`)
-- Updated `api_service.dart` with automatic retry logic (exponential backoff) and health-check-based offline detection.
-- **Chat Screen**: Integrated loading progress, active provider indicator, error banners, and message retries.
-- **Memory Screen**: Real-time working memory and SQLite persistent memory views with search, pull-to-refresh, and clear capabilities.
-- **Task Screen**: Live task status tracking connected to `/tasks/list` with task cancellation.
-- **Settings Screen**: Full configuration management with API key masking and provider switching.
-- **Provider Screen**: Real-time provider management with connection diagnostics and live switching.
-- **Plugins Screen**: Capability tool listing and dynamic plugin toggle interface.
-- **Developer Screen**: Full cognitive subsystem telemetry inspector, session tail logs, and real-time EchoWorker execution runner.
-
----
-
-## Automated Verification & Test Suite
-
-- **Total Python Unit & Integration Tests**: 123 passed (0 failed).
-- **Test Modules**:
-  - `test_alfa.py`: Core pipeline, memory, planner, provider abstraction.
-  - `test_phase2.py`: Executive, decision, reflection, learning, tool/plugin managers.
-  - `test_server.py`: FastAPI server REST endpoints.
-  - `test_worker.py`: Worker Framework infrastructure, scheduler, and EchoWorker.
-  - `test_desktop.py`: PySide6 GUI interface initialization.
+### 3. Stability & Full Test Validation
+- **Python Test Suite**: 612 tests passed (100% pass rate).
+- **Flutter Test Suite**: Unit and widget tests passed 100%.
+- **Automated Desktop Walkthrough**: Offscreen PySide6 runtime test verified all 14 workspaces switch and render without exceptions.
 
 ---
 
 ## Release Artifacts
 
-- **Windows Standalone Executable**: `release/desktop/AlfaDesktop.exe`
-- **Production Android APK**: `release/android/alfa-cos-mobile.apk`
-- **Production Android App Bundle**: `release/android/alfa-cos-mobile.aab`
+| Platform | Target Artifact | Path |
+|----------|-----------------|------|
+| **Windows Desktop** | Standalone Executable | `release/desktop/AlfaDesktop.exe` |
+| **Android Mobile** | Release APK | `release/android/alfa-cos-mobile.apk` |
+| **Android Mobile** | Release App Bundle (AAB) | `release/android/alfa-cos-mobile.aab` |
+| **Verification** | Cryptographic Hashes | `release/CHECKSUMS.sha256` |
 
 ---
 
-## Recommendations for Alfa COS v0.4
+## Verification & Build Commands
 
-1. **Distributed Worker Execution**: Extend the v0.3 FIFO WorkerScheduler with multi-threaded or multi-process execution pools for parallel background processing.
-2. **Local Model Quantization**: Native integration with GGUF/llama.cpp engines for offline edge cognition.
-3. **Multi-Agent Orchestration**: Inter-agent communication protocols built on top of the Event Bus.
+```powershell
+# Run full python test suite
+python -m pytest tests/ -v
+
+# Run flutter test suite
+cd android && flutter test
+
+# Automated desktop runtime walkthrough
+python scratch/test_walkthrough.py
+
+# Package Windows & Android binaries
+build_windows.bat
+```

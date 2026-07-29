@@ -1,6 +1,6 @@
-# Alfa COS v0.3 — Artificial Cognitive Operating System
+# Alfa COS v1.2 (RC1) — Artificial Cognitive Operating System
 
-A modular, production-ready Artificial Cognitive Operating System with an Executive Controller, Decision Engine, Reflection Engine, Learning Engine, Persistent SQLite Memory Manager, Tool & Plugin Frameworks, Worker Framework, interchangeable LLM providers (Mock, NVIDIA, OpenRouter, Ollama), PySide6 Desktop Developer Client, and Flutter Android Client.
+A modular, production-ready Artificial Cognitive Operating System with an Executive Controller, Decision Engine, Reflection Engine, Learning Engine, Persistent SQLite Memory Manager, Tool & Plugin Frameworks, Worker Framework, interchangeable LLM providers (Mock, NVIDIA, OpenRouter, Ollama, Gemini, OpenAI, Claude), PySide6 Desktop Client (14 Workspaces), and Flutter Android Client.
 
 ---
 

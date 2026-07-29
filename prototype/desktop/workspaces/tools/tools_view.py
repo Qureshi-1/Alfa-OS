@@ -83,6 +83,6 @@ class ToolsView(BaseView):
                         "0",
                         "ACTIVE",
                     ])
-                self.table.set_data(rows)
+                self.table.populate(rows)
         except Exception:
             pass

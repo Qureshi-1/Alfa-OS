@@ -43,6 +43,8 @@ class DataTable(QTableWidget):
                     item.setData(Qt.UserRole, data[i])
                 self.setItem(i, j, item)
 
+    set_data = populate
+
     def add_row(self, row: List[str], data: Optional[Dict[str, Any]] = None) -> None:
         """Append a single row to the table."""
         r = self.rowCount()

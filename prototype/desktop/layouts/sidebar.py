@@ -24,8 +24,8 @@ class Sidebar(QWidget):
         ("model_hub", "\u25C7", "Models"),
         ("agents", "\u2606", "Agents"),
         ("tools", "\u2692", "Tools"),
-        ("files", "\u1F4C1", "Files"),
-        ("plugins", "\u1F9E9", "Plugins"),
+        ("files", "\U0001F4C1", "Files"),
+        ("plugins", "\U0001F9E9", "Plugins"),
         ("settings", "\u2699", "Settings"),
     ]
 

@@ -78,6 +78,6 @@ class PluginsView(BaseView):
                 for p in plugins:
                     p_name = p.get("name", "Plugin") if isinstance(p, dict) else str(p)
                     rows.append([p_name, "v1.0", "Workspace", "ACTIVE", "Configure"])
-                self.table.set_data(rows)
+                self.table.populate(rows)
         except Exception:
             pass

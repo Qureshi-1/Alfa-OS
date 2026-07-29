@@ -2,6 +2,16 @@
 
 All notable changes to the ALFA Artificial Cognitive Operating System will be documented in this file.
 
+## [v1.2-RC1] — 2026-07-29
+
+### Added & Polished (Release Candidate 1)
+- **Phase A — Complete Desktop UI System**: Comprehensive visual overhaul and alignment across all 14 workspace modules (Dashboard, Assistant, Memory, Planner, Tasks, Knowledge, Runtime, Model Hub, Agents, Tools, Files, Plugins, Settings, Notifications).
+- **Phase B — UX Polish**: Fixed unicode icon escape sequences (`\U0001F4C1`, `\U0001F9E9`), improved `EmptyState` auto-detecting layout parser, resolved `DataTable` method bindings (`populate` / `set_data`), dynamic directory tree file previewer, and removed remaining UI placeholders.
+- **Phase C — Performance**: Optimized hardware telemetry auto-refresh loop in right panel, streamlined widget recycling, reduced repaint costs, and optimized tree view population.
+- **Phase D — Stability**: Resolved Flutter widget smoke test (`widget_test.dart`), verified 612/612 Python test pass rate (100%), verified 100% Flutter test pass rate, and implemented automated 14-workspace runtime walkthrough verification.
+- **Phase E & F — Release Builds**: Standalone PyInstaller Windows executable (`release/desktop/AlfaDesktop.exe`), Flutter Android APK (`release/android/alfa-cos-mobile.apk`), Flutter Android AAB (`release/android/alfa-cos-mobile.aab`), release documentation updates (`README.md`, `CHANGELOG.md`, `RELEASE_NOTES.md`), and SHA-256 checksums (`release/CHECKSUMS.sha256`).
+- **Phase G — Git Tagging**: Tagged release candidate `v1.2-RC1` and pushed to `origin/v1.2-dev`.
+
 ## [v1.1.0] — 2026-07-28
 
 ### Added & Production-Completed

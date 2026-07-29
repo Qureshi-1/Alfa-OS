@@ -71,21 +71,49 @@ class FilesView(BaseView):
     def _populate_tree(self) -> None:
         self.tree.clear()
         root_dir = os.getcwd()
-        root_item = QTreeWidgetItem([os.path.basename(root_dir)])
+        root_name = os.path.basename(root_dir) or "Alfa"
+        root_item = QTreeWidgetItem([f"📁 {root_name}"])
         self.tree.addTopLevelItem(root_item)
 
-        prototype_item = QTreeWidgetItem(root_item, ["prototype"])
-        QTreeWidgetItem(prototype_item, ["app.py"])
-        QTreeWidgetItem(prototype_item, ["main_window.py"])
+        try:
+            for item_name in sorted(os.listdir(root_dir)):
+                if item_name.startswith(('.', '__')) or item_name in ('build', 'dist', 'release', '.venv'):
+                    continue
+                item_path = os.path.join(root_dir, item_name)
+                if os.path.isdir(item_path):
+                    dir_node = QTreeWidgetItem(root_item, [f"📁 {item_name}"])
+                    try:
+                        for child in sorted(os.listdir(item_path))[:12]:
+                            if not child.startswith(('.', '__')):
+                                icon = "📁" if os.path.isdir(os.path.join(item_path, child)) else "📄"
+                                child_node = QTreeWidgetItem(dir_node, [f"{icon} {child}"])
+                                child_node.setData(0, Qt.UserRole, os.path.join(item_path, child))
+                    except Exception:
+                        pass
+                else:
+                    file_node = QTreeWidgetItem(root_item, [f"📄 {item_name}"])
+                    file_node.setData(0, Qt.UserRole, item_path)
+        except Exception:
+            pass
+
         root_item.setExpanded(True)
 
     def _on_item_clicked(self, item: QTreeWidgetItem, column: int) -> None:
-        filename = item.text(0)
-        self.file_label.setText(f"Preview: {filename}")
-        if filename.endswith(".py"):
-            self.code_edit.setPlainText(f"# Preview of {filename}\n# ALFA COS Workspace Module File\nimport logging\n\nlogger = logging.getLogger(__name__)")
+        file_path = item.data(0, Qt.UserRole)
+        name = item.text(0).replace("📁 ", "").replace("📄 ", "")
+        self.file_label.setText(f"Preview: {name}")
+
+        if file_path and os.path.isfile(file_path):
+            try:
+                with open(file_path, "r", encoding="utf-8", errors="ignore") as f:
+                    content = f.read(4096)
+                    if len(content) == 4096:
+                        content += "\n... [truncated preview]"
+                    self.code_edit.setPlainText(content)
+            except Exception as e:
+                self.code_edit.setPlainText(f"Error reading file: {e}")
         else:
-            self.code_edit.setPlainText(f"Select a python source file to inspect contents.")
+            self.code_edit.setPlainText(f"Directory or non-previewable file: {name}")
 
     def refresh(self) -> None:
         self._populate_tree()

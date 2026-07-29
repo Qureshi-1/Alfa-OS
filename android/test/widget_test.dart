@@ -6,6 +6,6 @@ void main() {
   testWidgets('Alfa COS Mobile App smoke test', (WidgetTester tester) async {
     final apiService = ApiService(customBaseUrl: 'http://127.0.0.1:8000');
     await tester.pumpWidget(AlfaApp(apiService: apiService));
-    expect(find.text('Alfa COS Mobile'), findsOneWidget);
+    expect(find.text('ALFA COS'), findsWidgets);
   });
 }

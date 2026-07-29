@@ -89,6 +89,6 @@ class KnowledgeView(BaseView):
                     ["system_core_spec", "Architecture", "1.00", "docs/AGENTS.md", "2026-07-28"],
                     ["memory_hypervisor_rules", "Memory", "0.95", "prototype/memory/", "2026-07-28"],
                 ]
-                self.table.set_data(rows)
+                self.table.populate(rows)
         except Exception:
             pass

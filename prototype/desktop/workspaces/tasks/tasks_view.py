@@ -82,6 +82,6 @@ class TasksView(BaseView):
                         w.get("status", "RUNNING"),
                         w.get("name", "Execution Worker"),
                     ])
-                self.table.set_data(rows)
+                self.table.populate(rows)
         except Exception:
             pass

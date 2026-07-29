@@ -7,3 +7,5 @@ logs/*.log
 dist/
 build/
 .venv/
+release/desktop/
+release/android/
