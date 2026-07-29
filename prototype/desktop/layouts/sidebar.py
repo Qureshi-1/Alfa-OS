@@ -14,6 +14,7 @@ class Sidebar(QWidget):
     workspace_changed = Signal(str)
 
     DEFAULT_NAV_ITEMS: List[Tuple[str, str, str]] = [
+        ("hud", "\u26A1", "APEX HUD"),
         ("dashboard", "\u25A6", "Dashboard"),
         ("chat", "\u2709", "Assistant"),
         ("memory", "\u25C8", "Memory"),

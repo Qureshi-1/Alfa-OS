@@ -394,18 +394,32 @@ class AlfaRuntime:
         if goal.name in builtin_goals:
             return self.kernel.process(user_input, context)
 
-        # Everything else goes through the full CognitionRuntime pipeline
+        # Everything else goes through the full CognitionRuntime pipeline with LocalCognition fallback
         try:
-            return self.cognition.process(
+            res = self.cognition.process(
                 user_input,
                 context={
                     "provider_name": self.provider_name,
                     "model_name": self._settings.get_model(),
                 },
             )
+            if res.success and res.content:
+                return res
+            # High-speed local engine fallback for zero-latency responses
+            local_res = self.local_engine.infer(user_input)
+            return EngineResult(
+                content=local_res.response,
+                success=True,
+                metadata={"provider": local_res.provider, "latency_ms": local_res.latency_ms},
+            )
         except Exception as exc:
-            logger.warning("CognitionRuntime failed, falling back to Kernel: %s", exc)
-            return self.kernel.process(user_input, context)
+            logger.warning("CognitionRuntime failed, using Local Engine fallback: %s", exc)
+            local_res = self.local_engine.infer(user_input)
+            return EngineResult(
+                content=local_res.response,
+                success=True,
+                metadata={"provider": local_res.provider, "latency_ms": local_res.latency_ms},
+            )
 
     def switch_provider(self, provider_name: str) -> None:
         """Switch the active provider without restart."""

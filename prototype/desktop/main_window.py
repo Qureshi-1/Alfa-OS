@@ -13,7 +13,7 @@ from prototype.desktop.workspaces import (
     DashboardView, ChatView, ModelHubView, MemoryView,
     AgentWorkspaceView, WorkersView, SettingsView, NotificationsView,
     PlannerView, TasksView, KnowledgeView, RuntimeView,
-    ToolsView, FilesView, PluginsView,
+    ToolsView, FilesView, PluginsView, HudView,
 )
 
 logger = logging.getLogger("alfa.desktop")
@@ -22,7 +22,7 @@ logger = logging.getLogger("alfa.desktop")
 class AlfaDesktopWindow(OSShell):
     """Main desktop window using the OS shell layout.
 
-    Registers all 13 AI Operating System workspaces and manages lifecycle.
+    Registers all AI Operating System workspaces and manages lifecycle.
     """
 
     def __init__(self, runtime: AlfaRuntime, parent=None):
@@ -31,7 +31,8 @@ class AlfaDesktopWindow(OSShell):
         # Apply theme
         self.setStyleSheet(build_stylesheet())
 
-        # Register standard 13 AI OS workspace modules
+        # Register AI OS workspace modules
+        self.register_workspace("hud", HudView(runtime))
         self.register_workspace("dashboard", DashboardView(runtime))
         self.register_workspace("chat", ChatView(runtime))
         self.register_workspace("memory", MemoryView(runtime))
