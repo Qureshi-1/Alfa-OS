@@ -27,6 +27,8 @@ from .hypervisor import (
     StateSnapshot,
 )
 
+from .local_engine import LocalCognitionEngine, LocalInferenceResult
+
 __all__ = [
     "PerceptionEngine", "PerceptionResult",
     "TaskPlanner", "TaskPlan",
@@ -46,4 +48,6 @@ __all__ = [
     "HypothesisEnvironment",
     "SpeculativeExecutor",
     "StateSnapshot",
+    "LocalCognitionEngine",
+    "LocalInferenceResult",
 ]

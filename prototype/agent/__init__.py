@@ -23,6 +23,7 @@ from .specialized_agents import (
     CodingAgent, PlanningAgent, ResearchAgent, BrowserAgent,
     FileAgent, GitAgent, TerminalAgent, BuildAgent, DocsAgent,
 )
+from .swarm_orchestrator import SwarmOrchestrator, SwarmResult
 from .agent_runtime import AgentRuntime
 
 __all__ = [
@@ -34,4 +35,5 @@ __all__ = [
     "WorkerResult", "StatusBoardEntry", "ThreeTierTaskFrame", "TierRole", "SubtaskStatus",
     "CodingAgent", "PlanningAgent", "ResearchAgent", "BrowserAgent",
     "FileAgent", "GitAgent", "TerminalAgent", "BuildAgent", "DocsAgent",
+    "SwarmOrchestrator", "SwarmResult",
 ]

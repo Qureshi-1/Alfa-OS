@@ -15,11 +15,12 @@ from .runtime import RuntimeView
 from .tools import ToolsView
 from .files import FilesView
 from .plugins import PluginsView
+from .hud.hud_view import HudView
 
 __all__ = [
     "DashboardView", "ChatView", "ModelHubView", "MemoryView",
     "AgentWorkspaceView", "WorkersView", "SettingsView", "NotificationsView",
     "PlannerView", "TasksView", "KnowledgeView", "RuntimeView",
-    "ToolsView", "FilesView", "PluginsView",
+    "ToolsView", "FilesView", "PluginsView", "HudView",
 ]
 

@@ -155,6 +155,19 @@ class AlfaRuntime:
             cognition_runtime=self.cognition,
         )
 
+        # APEX v2.0 Modules — Local Engine, Passive Daemon, Self-Healing, Swarm & Proactive Assistant
+        from prototype.cognition.local_engine import LocalCognitionEngine
+        from prototype.voice.passive_daemon import PassiveVoiceVisionDaemon
+        from prototype.daemon.self_healing import SelfHealingDaemon
+        from prototype.agent.swarm_orchestrator import SwarmOrchestrator
+        from prototype.executive.proactive_assistant import ProactiveExecutiveAssistant
+
+        self.local_engine = LocalCognitionEngine(event_bus=self.event_bus)
+        self.passive_daemon = PassiveVoiceVisionDaemon(event_bus=self.event_bus)
+        self.self_healing = SelfHealingDaemon(event_bus=self.event_bus)
+        self.swarm_orchestrator = SwarmOrchestrator(registry=self.agent_runtime.registry, event_bus=self.event_bus)
+        self.proactive_assistant = ProactiveExecutiveAssistant(event_bus=self.event_bus)
+
         # Component list for lifecycle management (load/shutdown order)
         self._components = [
             self.context_manager,
@@ -173,6 +186,10 @@ class AlfaRuntime:
             self.kernel,
             self.mission_runtime,
             self.voice_runtime,
+            self.local_engine,
+            self.passive_daemon,
+            self.self_healing,
+            self.proactive_assistant,
         ]
         self._loaded = False
 
@@ -192,6 +209,9 @@ class AlfaRuntime:
         return MockProvider()
 
     # ── Lifecycle ─────────────────────────────────────────────────────────
+
+    def is_loaded(self) -> bool:
+        return self._loaded
 
     def load(self) -> None:
         """Initialize all components and wire dependencies."""
