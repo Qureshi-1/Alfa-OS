@@ -91,8 +91,8 @@ class _MainNavigationState extends State<MainNavigation> {
       bottomNavigationBar: rail ? null : NavigationBar(
         selectedIndex: _currentIndex.clamp(0, 3),
         onDestinationSelected: (index) => setState(() => _currentIndex = index),
-        backgroundColor: AlfaColors.panelSolid.withOpacity(.94),
-        indicatorColor: AlfaColors.neonBlue.withOpacity(.18),
+        backgroundColor: AlfaColors.panelSolid.withValues(alpha: .94),
+        indicatorColor: AlfaColors.neonBlue.withValues(alpha: .18),
         destinations: const [
           NavigationDestination(icon: Icon(Icons.dashboard_customize), label: 'Home'),
           NavigationDestination(icon: Icon(Icons.forum), label: 'Chat'),
@@ -134,7 +134,7 @@ class _MainNavigationState extends State<MainNavigation> {
     Padding(
       padding: const EdgeInsets.all(10),
       child: Row(children: [
-        Container(width: 38, height: 38, decoration: BoxDecoration(shape: BoxShape.circle, gradient: const LinearGradient(colors: [AlfaColors.neonBlue, AlfaColors.violet]), boxShadow: [BoxShadow(color: AlfaColors.neonBlue.withOpacity(.35), blurRadius: 24)]), child: const Icon(Icons.blur_circular, color: Colors.white)),
+        Container(width: 38, height: 38, decoration: BoxDecoration(shape: BoxShape.circle, gradient: const LinearGradient(colors: [AlfaColors.neonBlue, AlfaColors.violet]), boxShadow: [BoxShadow(color: AlfaColors.neonBlue.withValues(alpha: .35), blurRadius: 24)]), child: const Icon(Icons.blur_circular, color: Colors.white)),
         if (expanded) const SizedBox(width: 12),
         if (expanded) const Expanded(child: Text('ALFA COS', style: TextStyle(fontWeight: FontWeight.w900, letterSpacing: 2))),
       ]),
@@ -151,7 +151,7 @@ class _MainNavigationState extends State<MainNavigation> {
           child: AnimatedContainer(
             duration: const Duration(milliseconds: 180),
             padding: EdgeInsets.symmetric(horizontal: expanded ? 12 : 0, vertical: 11),
-            decoration: BoxDecoration(color: selected ? AlfaColors.neonBlue.withOpacity(.14) : Colors.transparent, borderRadius: BorderRadius.circular(16), border: Border.all(color: selected ? AlfaColors.lineStrong : Colors.transparent)),
+            decoration: BoxDecoration(color: selected ? AlfaColors.neonBlue.withValues(alpha: .14) : Colors.transparent, borderRadius: BorderRadius.circular(16), border: Border.all(color: selected ? AlfaColors.lineStrong : Colors.transparent)),
             child: Row(mainAxisAlignment: expanded ? MainAxisAlignment.start : MainAxisAlignment.center, children: [
               Icon(item.icon, color: selected ? AlfaColors.neonBlue : AlfaColors.textMuted),
               if (expanded) const SizedBox(width: 12),

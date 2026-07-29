@@ -25,7 +25,7 @@ class CosBackdrop extends StatelessWidget {
                 gradient: LinearGradient(
                   begin: Alignment.topRight,
                   end: Alignment.bottomLeft,
-                  colors: [AlfaColors.deepSpace.withOpacity(.58), Colors.transparent, const Color(0x220A84FF)],
+                  colors: [AlfaColors.deepSpace.withValues(alpha: .58), Colors.transparent, const Color(0x220A84FF)],
                 ),
               ),
             ),
@@ -40,7 +40,7 @@ class CosBackdrop extends StatelessWidget {
 class _GridPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
-    final paint = Paint()..color = AlfaColors.line.withOpacity(.28)..strokeWidth = .6;
+    final paint = Paint()..color = AlfaColors.line.withValues(alpha: .28)..strokeWidth = .6;
     const step = 36.0;
     for (double x = 0; x < size.width; x += step) {
       canvas.drawLine(Offset(x, 0), Offset(x, size.height), paint);
@@ -69,8 +69,8 @@ class GlassPanel extends StatelessWidget {
       decoration: BoxDecoration(
         color: AlfaColors.panel,
         borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: accent.withOpacity(.28)),
-        boxShadow: [BoxShadow(color: accent.withOpacity(.08), blurRadius: 30, spreadRadius: -8)],
+        border: Border.all(color: accent.withValues(alpha: .28)),
+        boxShadow: [BoxShadow(color: accent.withValues(alpha: .08), blurRadius: 30, spreadRadius: -8)],
       ),
       child: child,
     );
@@ -87,7 +87,7 @@ class StatusChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Container(
     padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
-    decoration: BoxDecoration(color: color.withOpacity(.12), borderRadius: BorderRadius.circular(999), border: Border.all(color: color.withOpacity(.35))),
+    decoration: BoxDecoration(color: color.withValues(alpha: .12), borderRadius: BorderRadius.circular(999), border: Border.all(color: color.withValues(alpha: .35))),
     child: Row(mainAxisSize: MainAxisSize.min, children: [Icon(icon, size: 14, color: color), const SizedBox(width: 6), Text(label, style: TextStyle(color: color, fontSize: 11, fontWeight: FontWeight.w700, letterSpacing: .5))]),
   );
 }
@@ -163,8 +163,8 @@ class _AvatarOrbState extends State<AvatarOrb> with SingleTickerProviderStateMix
     final pulse = .55 + math.sin(_controller.value * math.pi * 2) * .12;
     return Container(
       width: 170, height: 170,
-      decoration: BoxDecoration(shape: BoxShape.circle, gradient: RadialGradient(colors: [AlfaColors.cyan.withOpacity(.95), AlfaColors.electricBlue.withOpacity(pulse), Colors.transparent]), boxShadow: [BoxShadow(color: AlfaColors.neonBlue.withOpacity(.35), blurRadius: 48)]),
-      child: Center(child: Container(width: 92, height: 92, decoration: BoxDecoration(shape: BoxShape.circle, color: AlfaColors.voidBlack.withOpacity(.72), border: Border.all(color: AlfaColors.cyan.withOpacity(.75))), child: Center(child: Text(widget.state.toUpperCase(), style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w900, letterSpacing: 1.4))))),
+      decoration: BoxDecoration(shape: BoxShape.circle, gradient: RadialGradient(colors: [AlfaColors.cyan.withValues(alpha: .95), AlfaColors.electricBlue.withValues(alpha: pulse), Colors.transparent]), boxShadow: [BoxShadow(color: AlfaColors.neonBlue.withValues(alpha: .35), blurRadius: 48)]),
+      child: Center(child: Container(width: 92, height: 92, decoration: BoxDecoration(shape: BoxShape.circle, color: AlfaColors.voidBlack.withValues(alpha: .72), border: Border.all(color: AlfaColors.cyan.withValues(alpha: .75))), child: Center(child: Text(widget.state.toUpperCase(), style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w900, letterSpacing: 1.4))))),
     );
   });
 }

@@ -2,12 +2,14 @@ name: Alfa COS Android CI/CD
 
 on:
   push:
-    branches: [ main, master, development ]
+    branches: [ main, master, development, 'v*' ]
+    tags: [ 'v*' ]
   pull_request:
-    branches: [ main, master ]
+    branches: [ main, master, development, 'v*' ]
 
 jobs:
   test-and-build-android:
+    name: Android CI
     runs-on: ubuntu-latest
 
     steps:
@@ -23,6 +25,7 @@ jobs:
         uses: subosito/flutter-action@v2
         with:
           channel: 'stable'
+          cache: true
 
       - name: Install Dependencies
         working-directory: ./android
